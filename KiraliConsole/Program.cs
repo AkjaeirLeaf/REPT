@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Kirali.MathR;
+using Kirali.Light;
 using Kirali.Celestials;
 
 namespace KiraliConsole
@@ -10,16 +11,25 @@ namespace KiraliConsole
         static void Main(string[] args)
         {
             Console.WriteLine("KIRALI CONSOLE TESTING");
-            Console.WriteLine("Hello World!\n\n");
+            Console.WriteLine("Hello Universe!\n\n");
 
-            Vector3 vecInit = new Vector3(4, -3, 0);
-            Vector3 vecNormal = new Vector3(-1, 0, 0).Normalize();
 
-            Vector3 refl = Vector3.Bounce(vecInit, vecNormal);
-            Vector3 refr = Vector3.Refract(vecInit, vecNormal, 1.0, 4/3.0);
-            Console.WriteLine("Incoming Ray: " + vecInit.ToString(3) + "  Angle:  " + Vector3.Between(vecInit, new Vector3(vecNormal).Negate()));
-            Console.WriteLine("Reflected Ray: " + refl.ToString(3) + "  Angle:  " + Vector3.Between(refl, new Vector3(vecNormal).Negate()));
-            Console.WriteLine("Refracted Ray: " + refr.ToString(3) + "  Angle:  " + Vector3.Between(refr, new Vector3(vecNormal).Negate()));
+
+            Vector3 posInit = new Vector3(20, 0, 0, Vector3.VectorForm.POSITION);
+            Vector3 dirInit = new Vector3(-4, 3, 0, Vector3.VectorForm.DIRECTION).Normalize();
+
+            LightRay lr = new LightRay(posInit, dirInit);
+            LinearFalloff lf_explicit = new LinearFalloff();
+            lr.SetMedium(lf_explicit, 0.01);
+
+            lr.Step(1.0);
+
+            while (lr.Position.X > -10)
+            {
+                lr.March(0.002, 35);
+                Console.WriteLine("Light Ray position stepped: " + lr.Position.ToString(3));
+            }
+            Console.WriteLine("Light Ray has reached the bounds!");
         }
     }
 }

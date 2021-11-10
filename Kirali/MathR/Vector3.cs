@@ -231,7 +231,7 @@ namespace Kirali.MathR
         /// <returns></returns>
         public override string ToString()
         {
-            return "Vector: < " + X.ToString() + ", " + Y.ToString() + ", " + Z.ToString() + " >";
+            return "< " + X.ToString() + ", " + Y.ToString() + ", " + Z.ToString() + " >";
         }
 
         /// <summary>
@@ -246,10 +246,11 @@ namespace Kirali.MathR
             y1 = Math.Round(Y, decimalCutoff);
             z1 = Math.Round(Z, decimalCutoff);
 
-            return "Vector: < " + x1.ToString() + ", " + y1.ToString() + ", " + z1.ToString() + " >";
+            return "< " + x1.ToString() + ", " + y1.ToString() + ", " + z1.ToString() + " >";
         }
 
         //CONVERSION FORMS
+        public static explicit operator string(Vector3 p) => p.ToString();
         public static explicit operator Matrix(Vector3 p) => p.ToMatrix();
 
         /// <summary>
@@ -345,16 +346,25 @@ namespace Kirali.MathR
         {
             try
             {
-                Vector3 Uaxi = Cross(incident, normal).Normalize();
-                Console.WriteLine(Uaxi.ToString());
-                double Ainc = Between(new Vector3(normal).Negate(), incident);
-                if (Ainc > Math.PI / 2) { Ainc = Between(normal, incident); }
+                Vector3 Uaxi = Cross(incident, normal);
+                if(Uaxi.Length() != 0)
+                {
+                    Uaxi.Normalize();
 
-                double outangle = Ainc - Math.Asin(n1/n2 * Math.Sin(Ainc));
+                    double Ainc = Between(new Vector3(normal).Negate(), incident);
+                    if (Ainc > Math.PI / 2) { Ainc = Between(normal, incident); }
 
-                Matrix rot = Matrix.RotationU(Uaxi, outangle);
-                Vector3 resultant = (incident.ToMatrix().Flip() * rot).ToVector3();
-                return resultant;
+                    double outangle = Ainc - Math.Asin(n1 / n2 * Math.Sin(Ainc));
+
+                    Matrix rot = Matrix.RotationU(Uaxi, outangle);
+                    Vector3 resultant = (incident.ToMatrix().Flip() * rot).ToVector3();
+                    return resultant;
+
+                }
+                else
+                {
+                    return incident;
+                }
             }
             catch
             {

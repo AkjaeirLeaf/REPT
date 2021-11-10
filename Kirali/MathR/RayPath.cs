@@ -8,8 +8,8 @@ namespace Kirali.MathR
 {
     public class RayPath
     {
-        private Vector3 source;
-        private uint rayID;
+        protected Vector3 source;
+        protected uint rayID;
 
         public Vector3 Source { get { return source; } }
 
@@ -17,7 +17,7 @@ namespace Kirali.MathR
         public Vector3 Position;
         public double Magnitude;
 
-        public uint RID { get { return RID; } }
+        public uint RID { get { return rayID; } }
 
         /// <summary>
         /// <tooltip>Create a new empty RayPath.</tooltip>
@@ -33,7 +33,8 @@ namespace Kirali.MathR
         {
             Direction = new Vector3(1, 0, 0, Vector3.VectorForm.DIRECTION);
             Direction.Set(direction);
-            source = Position = Vector3.Zero();
+            source = new Vector3(Vector3.Zero());
+            Position = new Vector3(Vector3.Zero());
             Magnitude = 0;
         }
 
@@ -41,6 +42,7 @@ namespace Kirali.MathR
         {
             Direction = new Vector3(1, 0, 0, Vector3.VectorForm.DIRECTION);
             Direction.Set(direction);
+            source = new Vector3(position);
             Position = new Vector3(position);
             Magnitude = 0;
         }
@@ -49,7 +51,8 @@ namespace Kirali.MathR
         {
             Direction = new Vector3(1, 0, 0, Vector3.VectorForm.DIRECTION);
             Direction.Set(direction);
-            source = Position = new Vector3(position);
+            source = new Vector3(position);
+            Position = new Vector3(position);
             Magnitude = magnitude;
         }
 
