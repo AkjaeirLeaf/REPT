@@ -321,6 +321,12 @@ namespace Kirali.MathR
             return angle;
         }
 
+        public static Vector3 RotateU(Vector3 vector, Vector3 Uaxis, double angle)
+        {
+            Matrix rot = Matrix.RotationU(Uaxis, angle);
+            return (vector.ToMatrix().Flip() * rot).ToVector3();
+        }
+
         /// <summary>
         /// <tooltip>Returns a vector of the same magnitude as the given vector, bounced off a surface with a given normal vector.</tooltip>
         /// </summary>
@@ -329,8 +335,7 @@ namespace Kirali.MathR
         /// <returns></returns>
         public static Vector3 Bounce(Vector3 incident, Vector3 normal)
         {
-            Matrix rot = Matrix.RotationU(normal, Math.PI);
-            Vector3 resultant = (incident.ToMatrix().Flip() * rot).ToVector3();
+            Vector3 resultant = incident - 2 * (Vector3.Dot(incident, normal) * normal);
             return resultant;
         }
 
@@ -354,7 +359,7 @@ namespace Kirali.MathR
                     double Ainc = Between(new Vector3(normal).Negate(), incident);
                     if (Ainc > Math.PI / 2) { Ainc = Between(normal, incident); }
 
-                    double outangle = Ainc - Math.Asin(n1 / n2 * Math.Sin(Ainc));
+                    double outangle = Math.Asin(n1 / n2 * Math.Sin(Ainc)) - Ainc;
 
                     Matrix rot = Matrix.RotationU(Uaxi, outangle);
                     Vector3 resultant = (incident.ToMatrix().Flip() * rot).ToVector3();
@@ -391,6 +396,18 @@ namespace Kirali.MathR
         public static Vector3 operator -(Vector3 v1, Vector3 v2)
         {
             return new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+        }
+
+        public static bool IsEqual(Vector3 v1, Vector3 v2)
+        {
+            if(v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         #endregion VecOperations

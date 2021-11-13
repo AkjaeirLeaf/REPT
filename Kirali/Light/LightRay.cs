@@ -15,6 +15,9 @@ namespace Kirali.Light
 
         public double Intensity = 1;
 
+        private bool HASHIT = false;
+        public bool hit { get { return HASHIT; } }
+
         public LightRay()
         {
             //TODO: Default Constructor
@@ -22,9 +25,9 @@ namespace Kirali.Light
 
         public LightRay(Vector3 pos, Vector3 dir)
         {
-            this.Position = pos;
-            this.source = pos;
-            this.Direction = dir;
+            this.Position = new Vector3(pos);
+            this.source = new Vector3(pos);
+            this.Direction = new Vector3(dir);
         }
 
 
@@ -37,10 +40,27 @@ namespace Kirali.Light
         public override RayPath March(double minimum, double maximum)
         {
             double range = _lrMarchCast(minimum, n_Responsive, maximum);
-            double n1 = N.At(Position); double n2 = N.At(Position + (range * Direction));
-            Vector3 newDir = Vector3.Refract(Direction, new Vector3(N.Grad(Position)).Normalize(), n1, n2);
-            Direction = newDir;
             Position.Add(Direction * range);
+            double n1 = N.At(Position); double n2 = N.At(Position + (range * Direction));
+            Vector3 newDir;
+            if(n1 != n2)
+            {
+                HASHIT = true;
+                if (n2 > 0 && n1 > 0)
+                {
+                    newDir = Vector3.Refract(Direction, new Vector3(N.Grad(Position)).Normalize(), n1, n2);
+                    if(Double.IsNaN(newDir.X) || Double.IsNaN(newDir.Y) || Double.IsNaN(newDir.Z))
+                    {
+                        newDir = Vector3.Bounce(Direction, new Vector3(N.Grad(Position)).Normalize());
+                    }
+                }
+                else
+                {
+                    newDir = Vector3.Bounce(Direction, new Vector3(N.Grad(Position)).Normalize());
+                }
+                Direction = new Vector3(newDir);
+            }
+
             return this;
         }
 

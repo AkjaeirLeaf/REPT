@@ -52,6 +52,9 @@
     <Compile Include="MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Objects\LinearFalloff.cs" />
+    <Compile Include="Objects\SolidCube.cs" />
+    <Compile Include="Objects\SolidSphere.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainWindow.resx">
@@ -78,6 +81,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kirali\Kirali.csproj">
+      <Project>{43af642d-6f48-48bf-be1e-ecb98775b43a}</Project>
+      <Name>Kirali</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

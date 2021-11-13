@@ -17,7 +17,7 @@ namespace Kirali.MathR
         public Vector3 Position;
         public double Magnitude;
 
-        public uint RID { get { return rayID; } }
+        public uint RID { get { return rayID; } set { rayID = value; } }
 
         /// <summary>
         /// <tooltip>Create a new empty RayPath.</tooltip>
