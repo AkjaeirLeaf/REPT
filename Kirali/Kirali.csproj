@@ -48,11 +48,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Celestials\Atmosphere.cs" />
+    <Compile Include="Environment\KShader.cs" />
+    <Compile Include="Environment\Procedural\FractalNoise.cs" />
+    <Compile Include="Environment\Procedural\PerlinNoise.cs" />
+    <Compile Include="Environment\Render\Primatives\Sphere.cs" />
+    <Compile Include="Environment\Shaders\PlanetShader.cs" />
+    <Compile Include="Environment\Shaders\StarShader.cs" />
     <Compile Include="Framework\Random.cs" />
+    <Compile Include="Framework\SpreadsheetHandler.cs" />
     <Compile Include="Light\Camera.cs" />
     <Compile Include="Light\KColor4.cs" />
+    <Compile Include="Light\KColorImage.cs" />
     <Compile Include="Light\LightRay.cs" />
+    <Compile Include="MathR\Atmospherics.cs" />
     <Compile Include="MathR\Explicit.cs" />
+    <Compile Include="MathR\Interpolate.cs" />
     <Compile Include="MathR\Matrix.cs" />
     <Compile Include="MathR\Physics.cs" />
     <Compile Include="MathR\RayPath.cs" />

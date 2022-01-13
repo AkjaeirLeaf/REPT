@@ -25,7 +25,8 @@ namespace Kirali.MathR
             DIRECTION,
             POSITION,
             NORMAL,
-            PLANE
+            PLANE,
+            INFINITY //only for non-hit calculations
         }
         /// <summary>
         /// <tooltip>
@@ -92,10 +93,7 @@ namespace Kirali.MathR
         /// <tooltip>Returns a Vector3 object with zero length.</tooltip>
         /// </summary>
         /// <returns></returns>
-        public static Vector3 Zero()
-        {
-            return new Vector3(0, 0, 0);
-        }
+        public static Vector3 Zero { get { return new Vector3(0.0, 0.0, 0.0); } }
 
         /// <summary>
         /// <tooltip>Create a new empty 3D Vector with space for x, y, and z coodrinate values.</tooltip>
@@ -136,6 +134,10 @@ namespace Kirali.MathR
             Z = z;
             Form = vf;
         }
+
+        public static Vector3 Xaxis { get { return new Vector3(1.0, 0.0, 0.0, VectorForm.DIRECTION); } }
+        public static Vector3 Yaxis { get { return new Vector3(0.0, 1.0, 0.0, VectorForm.DIRECTION); } }
+        public static Vector3 Zaxis { get { return new Vector3(0.0, 0.0, 1.0, VectorForm.DIRECTION); } }
 
         #endregion VecConstruction
 
@@ -373,7 +375,7 @@ namespace Kirali.MathR
             }
             catch
             {
-                return Vector3.Zero();
+                return Vector3.Zero;
             }
         }
 
@@ -413,6 +415,10 @@ namespace Kirali.MathR
         #endregion VecOperations
 
 
+        #region VecSpecial
 
+
+
+        #endregion VecSpecial
     }
 }

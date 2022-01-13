@@ -19,9 +19,9 @@ namespace Kirali.Light
         public int Height { get { return HEIGHT; } }
         public double fov { get { return FOV; } set { FOV = value; } }
 
-        public Vector3 position = new Vector3(Vector3.Zero());
+        public Vector3 position = new Vector3(Vector3.Zero);
         //rot = thet, phi, r
-        public Vector3 rotation = new Vector3(Vector3.Zero());
+        public Vector3 rotation = new Vector3(Vector3.Zero);
 
         private Vector3 C_dir = new Vector3(0, 0, -1);
         private Vector3 C_thet = new Vector3(1, 0, 0);
@@ -69,7 +69,7 @@ namespace Kirali.Light
 
         public void RotatePhi(double radians)
         {
-            Matrix mat = Matrix.RotationU(C_thet, radians);
+            Matrix mat = Matrix.RotationU(C_phi, radians);
             C_thet = (C_thet.ToMatrix().Flip() * mat).ToVector3();
             C_dir = (C_dir.ToMatrix().Flip() * mat).ToVector3();
         }
@@ -79,6 +79,24 @@ namespace Kirali.Light
             Matrix mat = Matrix.RotationU(C_dir, radians);
             C_thet = (C_thet.ToMatrix().Flip() * mat).ToVector3();
             C_phi = (C_phi.ToMatrix().Flip() * mat).ToVector3();
+        }
+
+        public Vector3 GetRayCast(int xp, int yp)
+        {
+            double xpre = (xp + (Kirali.Framework.Random.Double(-1, 1) / 2));
+            double ypre = yp + (Kirali.Framework.Random.Double(-1, 1) / 2);
+
+            double xv = (xpre / WIDTH)  - 0.5;
+            double yv = (ypre / HEIGHT) - 0.5;
+
+            double thetx = (fov) * xv;
+            double thety = ((double)Height / Width) * (fov) * yv;
+
+            Vector3 pointing = new Vector3(C_dir);
+            pointing = Vector3.RotateU(pointing, C_phi, thetx);
+            pointing = Vector3.RotateU(pointing, C_thet, thety);
+
+            return pointing;
         }
 
         public KColor4 Shoot(int xp, int yp, Explicit exp)

@@ -33,6 +33,63 @@ namespace Kirali.MathR
         public const double R = Na * kb;
         /// <summary><tooltip>Stefan-Boltzmann Constant</tooltip></summary>
         public const double sigsb = 5.670374419E-8;
+        /// <summary><tooltip>Wien Displacement Constant</tooltip></summary>
+        public const double wien = 2.898E-3;
 
+        //series erf approximation
+        static double erf(double x)
+        {
+            double a1 = 0.254829592;
+            double a2 = -0.284496736;
+            double a3 = 1.421413741;
+            double a4 = -1.453152027;
+            double a5 = 1.061405429;
+            double p = 0.3275911;
+
+            int sign = 1;
+            if (x < 0)
+                sign = -1;
+            x = Math.Abs(x);
+
+            double t = 1.0 / (1.0 + p * x);
+            double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+
+            return sign * y;
+        }
+
+        public static double planckLaw(double temperature, double wavelength, char measure = 'm')
+        {
+            double L = wavelength;
+            switch (measure)
+            {
+                case 'u': //input is in micrometers
+                    L = wavelength / 1000000.0;
+                    break;
+                case 'n': //input is in nanometers
+                    L = wavelength / 1000000000.0;
+                    break;
+                case 'c': //input is in centimeters
+                    L = wavelength * 100.0;
+                    break;
+                case 'M': //input is in METERS
+                    L = wavelength;
+                    break;
+                default: //input type not recognised, presume meters
+                    L = wavelength;
+                    break;
+            }
+
+            double num1 = 2 * Math.PI * h * c * c;
+            double den1 = Math.Pow(L, 5);
+
+            double den2 = Math.Pow(Math.E, (h * c) / (L * kb * temperature)) - 1;
+
+            return (num1 / (den1 * den2));
+        }
+
+        public static double maxWavelengthEmission(double temperature)
+        {
+            return 0;
+        }
     }
 }

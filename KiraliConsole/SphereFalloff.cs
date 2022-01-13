@@ -22,7 +22,7 @@ namespace KiraliConsole
             }
             else
             {
-                return 1;
+                return -1;
             }
         }
 
@@ -30,9 +30,9 @@ namespace KiraliConsole
         {
             Vector3 pos = new Vector3(p0, p1, p2, Vector3.VectorForm.POSITION);
             double r = pos.Length();
-            if (r > 1)
+            if (true || r > 1)
             {
-                return (new Vector3(pos).Normalize()) * (-1) * Math.Pow(Math.E, -(r - 1));
+                return (new Vector3(pos).Normalize());
             }
             else
             {

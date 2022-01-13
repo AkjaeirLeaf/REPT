@@ -13,7 +13,7 @@ namespace REPT.Objects
     public class SolidCube : Explicit
     {
         private double SL = 1.0;
-        private Vector3 position = new Vector3(Vector3.Zero());
+        private Vector3 position = new Vector3(Vector3.Zero);
 
         public SolidCube(Vector3 Position, double side)
         {
@@ -28,7 +28,7 @@ namespace REPT.Objects
                 && p1 <= s2 + position.Y && -s2 + position.Y <= p1 
                 && p2 <= s2 + position.Z && -s2 + position.Z <= p2)
             {
-                return -1;
+                return 1.333;
             }
             else
             {

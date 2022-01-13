@@ -25,7 +25,7 @@ namespace Kirali.MathR
         public RayPath()
         {
             Direction = new Vector3(1, 0, 0, Vector3.VectorForm.DIRECTION);
-            source = Position = Vector3.Zero();
+            source = Position = Vector3.Zero;
             Magnitude = 0;
         }
 
@@ -33,8 +33,8 @@ namespace Kirali.MathR
         {
             Direction = new Vector3(1, 0, 0, Vector3.VectorForm.DIRECTION);
             Direction.Set(direction);
-            source = new Vector3(Vector3.Zero());
-            Position = new Vector3(Vector3.Zero());
+            source = new Vector3(Vector3.Zero);
+            Position = new Vector3(Vector3.Zero);
             Magnitude = 0;
         }
 
@@ -89,7 +89,7 @@ namespace Kirali.MathR
         }
         
 
-        public virtual RayPath March(double minimum, double maximum)
+        public virtual RayPath March(double minimum, double maximum, bool raydual = false)
         {
             return this;
         }

@@ -17,7 +17,7 @@ namespace Kirali.MathR
         public virtual double At(Vector3 position) { return At(position.X, position.Y, position.Z); }
 
         //Gradients and Derivatives of your function. 
-        public virtual Vector3 Grad(double p0, double p1 = 0, double p2 = 0) { return Vector3.Zero(); }
+        public virtual Vector3 Grad(double p0, double p1 = 0, double p2 = 0) { return Vector3.Zero; }
         public virtual Vector3 Grad(Vector3 position) { return Grad(position.X, position.Y, position.Z); }
 
     }
