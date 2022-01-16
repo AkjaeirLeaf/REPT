@@ -53,12 +53,14 @@
     <Compile Include="Environment\Procedural\PerlinNoise.cs" />
     <Compile Include="Environment\Render\Primatives\Sphere.cs" />
     <Compile Include="Environment\Shaders\PlanetShader.cs" />
+    <Compile Include="Environment\Shaders\RectSphereMap.cs" />
     <Compile Include="Environment\Shaders\StarShader.cs" />
+    <Compile Include="Framework\ArrayHandler.cs" />
     <Compile Include="Framework\Random.cs" />
     <Compile Include="Framework\SpreadsheetHandler.cs" />
     <Compile Include="Light\Camera.cs" />
     <Compile Include="Light\KColor4.cs" />
-    <Compile Include="Light\KColorImage.cs" />
+    <Compile Include="Storage\KColorImage.cs" />
     <Compile Include="Light\LightRay.cs" />
     <Compile Include="MathR\Atmospherics.cs" />
     <Compile Include="MathR\Explicit.cs" />
@@ -68,6 +70,7 @@
     <Compile Include="MathR\RayPath.cs" />
     <Compile Include="MathR\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\KImageCompressed.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

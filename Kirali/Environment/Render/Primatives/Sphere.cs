@@ -13,9 +13,13 @@ namespace Kirali.Environment.Render.Primatives
     public class Sphere : Explicit
     {
         private Vector3 POSITION = Vector3.Zero;
+        private Vector3 ROTATION = Vector3.Zero;
         private double RADIUS = 1;
         public KShader SHADER = new KShader();
 
+        private Vector3 C_dir = new Vector3(0, 0, -1);
+        private Vector3 C_thet = new Vector3(1, 0, 0);
+        private Vector3 C_phi = new Vector3(0, 1, 0);
 
         public Vector3 position { get { return POSITION; } set { POSITION = value; } }
         public double radius { get { return RADIUS; } set { RADIUS = value; } }
@@ -118,8 +122,50 @@ namespace Kirali.Environment.Render.Primatives
             }
         }
 
+        public void CReset()
+        {
+            //todo simplify rotation;
+            C_dir = new Vector3(0, 0, -1);
+            C_thet = new Vector3(1, 0, 0);
+            C_phi = new Vector3(0, 1, 0);
+        }
+
+        public void RotateThet(double radians)
+        {
+            ROTATION.X = radians;
+            Matrix mat = Matrix.RotationU(C_thet, radians);
+            C_dir = (C_dir.ToMatrix().Flip() * mat).ToVector3();
+            C_phi = (C_phi.ToMatrix().Flip() * mat).ToVector3();
+        }
+
+        public void RotatePhi(double radians)
+        {
+            ROTATION.Y = radians;
+            Matrix mat = Matrix.RotationU(C_phi, radians);
+            C_thet = (C_thet.ToMatrix().Flip() * mat).ToVector3();
+            C_dir = (C_dir.ToMatrix().Flip() * mat).ToVector3();
+        }
+
+        public void RotateR(double radians)
+        {
+            ROTATION.Z = radians;
+            Matrix mat = Matrix.RotationU(C_dir, radians);
+            C_thet = (C_thet.ToMatrix().Flip() * mat).ToVector3();
+            C_phi = (C_phi.ToMatrix().Flip() * mat).ToVector3();
+        }
 
         //SHADERSSS!!!!
+
+        public Vector3 GetNewMap(Vector3 point)
+        {
+            Vector3 pointing = new Vector3(point);
+            pointing = Vector3.RotateU(pointing, C_thet, ROTATION.X);
+            pointing = Vector3.RotateU(pointing, C_phi, ROTATION.Y);
+            pointing = Vector3.RotateU(pointing, C_dir, ROTATION.Z);
+            return pointing;
+        }
+
+        
 
         public KColor4 GetDiffuseColor(Vector3 point, string colorMode = "")
         {

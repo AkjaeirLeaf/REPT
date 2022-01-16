@@ -88,6 +88,34 @@ namespace Kirali.Framework
             // :)
         }
 
+        public SpreadsheetHandler(string[,] contents, int rows, int columns)
+        {
+            height = rows;
+            width = columns;
+            //rawcontents = contents;
+            sheet = new string[columns, rows];
+            for (int y = 0; y < rows; y++)
+            {
+                for (int x = 0; x < columns; x++)
+                {
+                    sheet[x, y] = contents[x , y];
+                }
+            }
+
+            // :)
+        }
+
+        public SpreadsheetHandler(int rows, int columns)
+        {
+            height = rows;
+            width = columns;
+            //rawcontents = contents;
+            sheet = new string[columns, rows];
+            
+
+            // :)
+        }
+
         public string SerializeSheet(string key = "\t")
         {
             string output = "";

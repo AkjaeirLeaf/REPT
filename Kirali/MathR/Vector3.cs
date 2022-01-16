@@ -323,6 +323,21 @@ namespace Kirali.MathR
             return angle;
         }
 
+        public static double LesserBetween(Vector3 v1, Vector3 v2)
+        {
+            double lc = v1.Length() * v2.Length();
+            double angle1 = Math.Acos(Dot(v1, v2) / lc);
+            double angle2 = Math.Acos(Dot(v1.Negate(), v2) / lc);
+            if(angle1 > angle2)
+            {
+                return angle2;
+            }
+            else
+            {
+                return angle1;
+            }
+        }
+
         public static Vector3 RotateU(Vector3 vector, Vector3 Uaxis, double angle)
         {
             Matrix rot = Matrix.RotationU(Uaxis, angle);

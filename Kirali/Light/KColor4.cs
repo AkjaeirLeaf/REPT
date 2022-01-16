@@ -64,7 +64,7 @@ namespace Kirali.Light
             a = color.A / 255.0;
         }
 
-        public Color ToSystemColor()
+        public Color ToSystemColor(bool incAlpha = false)
         {
             int newR = 0;
             int newG = 0;
@@ -77,14 +77,25 @@ namespace Kirali.Light
             else { newG = 255; }
             if (b < 1.0) { newB = (int)(255 * b); }
             else { newB = 255; }
+            if (a < 1.0) { newA = (int)(255 * a); }
+            else { newA = 255; }
 
 
             if (r < 0) { newR = 0; }
             if (g < 0) { newG = 0; }
             if (b < 0) { newB = 0; }
+            if (a < 0) { newA = 0; }
 
-            return Color.FromArgb(newA, newR, newG, newB);
+            if (incAlpha)
+            {
+                return Color.FromArgb(newA, newR, newG, newB);
+            }
+            else
+            {
+                return Color.FromArgb(255, newR, newG, newB);
+            }
         }
+
 
         //MORE NON-STATIC
 
@@ -459,5 +470,10 @@ namespace Kirali.Light
 
             return new KColor4(Red, Green, Blue);
         }
+
+
+        //KCOLOR4 DEFAULT COLORS
+        public static KColor4 WHITE { get { return new KColor4(1.0, 1.0, 1.0, 1.0); } }
+        public static KColor4 BLACK { get { return new KColor4(0.0, 0.0, 0.0, 0.0); } }
     }
 }

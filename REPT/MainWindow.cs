@@ -14,7 +14,7 @@ using Kirali.Light;
 using Kirali.Framework;
 using Kirali.Environment.Shaders;
 using Kirali.Environment.Render.Primatives;
-using Kirali.Celestials;
+using Kirali.Storage;
 
 using REPT.Objects;
 
@@ -29,7 +29,42 @@ namespace REPT
 
             //drawdat takes comparison values from exported data
 
-            Test7();
+            Test4();
+        }
+
+        //plotting surface values for OPL
+        public void Test8()
+        {
+            double theta = Math.PI;// / 2; //angle between center vector and raycast
+            double RADIUS = 6371000.0; //radius of planet in question
+            double wavelength = 0.490; //micrometers
+            double d = RADIUS + 2;     //distance from raycast init to center of object
+            double upper = 1000000;
+
+            string inputFileCont = File.ReadAllText("oplInputChart.tsv");
+            SpreadsheetHandler inputs = new SpreadsheetHandler(inputFileCont, 81, 2, '\t');
+            SpreadsheetHandler outSheet = new SpreadsheetHandler(81, 3);
+            outSheet.sheet[0, 0] = inputs.sheet[0, 0];
+            outSheet.sheet[1, 0] = inputs.sheet[1, 0];
+            outSheet.sheet[2, 0] = "KiraliOPLresult";
+
+            for (int inRow = 1; inRow < inputs.Height; inRow++)
+            {
+                outSheet.sheet[0, inRow] = inputs.sheet[0, inRow];
+                outSheet.sheet[1, inRow] = inputs.sheet[1, inRow];
+
+                double currWav = 0.2;
+                Double.TryParse(inputs.sheet[0, inRow], out currWav);
+
+                double pathLength = Atmospherics.std_OpticalPathLength(d, theta, currWav, 1, upper);
+                outSheet.sheet[2, inRow] = pathLength.ToString();
+
+                Console.WriteLine("W: " + Math.Round(currWav, 2) + "  OPL: " + pathLength);
+            }
+
+
+            string saveConts = outSheet.SerializeSheet();
+            File.WriteAllText("kirExportPaths.tsv", saveConts);
         }
 
         //determining optical depth as a function of Theta!!!!!!!!
@@ -38,8 +73,8 @@ namespace REPT
             double theta = Math.PI;// / 2; //angle between center vector and raycast
             double RADIUS = 6371000.0; //radius of planet in question
             double wavelength = 0.490; //micrometers
-            double d = RADIUS + 1000 * Math.Pow(2, 6);     //distance from raycast init to center of object
-            double upper = 100000000;
+            double d = RADIUS + 1000000;     //distance from raycast init to center of object
+            double upper = 10000000;
             Sphere sphere = new Sphere(new Vector3(0.0, 0.0, 0.0), RADIUS);
 
             Bitmap bmp = new Bitmap(1920 / 2, 1080 / 2);
@@ -77,11 +112,11 @@ namespace REPT
                     gh.DrawLine(ps, new Point(0, y), new Point(bmp.Width, y));
                 }
 
-                for (int x = 0; x < bmp.Width; x+=4)
+                for (int x = 0; x < bmp.Width; x+=3)
                 {
                     //double fv0 = Atmospherics.std_crossPerMolecule(wl, 'u', 0);
                     double angle = Math.PI * (1.0 - (double)x / bmp.Width);
-                    double fv1 = Atmospherics.std_OpticalPathLength(d, angle, wavelength);
+                    double fv1 = Atmospherics.std_OpticalPathLength(d, angle, wavelength, 1, upper);
                     Point newPos1 = new Point(x, (int)(bmp.Height * (1.0 - (fv1 - f_min) / f_range)));
                     //Console.WriteLine("theta:" + Math.Round(angle * 360.0 / (Math.PI * 2.0), 2) + " tau:" + Math.Round(fv1, 2));
                     f_pen = fpen;
@@ -374,62 +409,138 @@ namespace REPT
             bmp.Save("fdraw_pressureAtr.png");
         }
 
+        //Shader and sphere rendering section
         public void Test4()
         {
             double p_radius = 6371.0;
             DateTime dtStart = DateTime.Now;
             Sphere sphere = new Sphere(new Vector3(0.0, 0.0, 0.0), p_radius);
 
-            Vector3 camerapos = new Vector3(0, p_radius * 3, 0);
-            //Vector3 camerapos = new Vector3(2, 10, 2);
+            Vector3 camerapos = new Vector3(0, p_radius * 4.5, 0);
+            //Vector3 camerapos = new Vector3(0, 0, p_radius * 4.5);
             Vector3 camerarot = new Vector3(0, 0, 0);
             //Vector3 camerarot = new Vector3(Math.PI/2, 0, 0);
             //Vector3 camerarot = new Vector3(Math.PI / 3, -1 * Math.PI / 4, 0);
 
             Vector3 LAMP = new Vector3(-2.1, -3.2, -1.3).Normalize();
+            int dres = 4;
+            Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
 
-            Camera MainCamera = new Camera(camerapos, camerarot, 128, 128);
+
             MainCamera.RotateThet(Math.PI / 2);
             //WMainCamera.RotatePhi(Math.PI / 6);
             MainCamera.RotateR(Math.PI * (1 + 0.15));
 
             KColorImage renderImageRaw = new KColorImage(MainCamera.Width, MainCamera.Height);
+            renderImageRaw.Fill(KColor4.BLACK);
             Bitmap vmp = new Bitmap(MainCamera.Width, MainCamera.Height);
-            int samplesMax = 8;
+            int samplesMax = 1;
+            double dist = camerapos.Length();
 
+            //Shader!
+            //Bitmap earthPic = new Bitmap("earth.jpg");
+
+            //sphere.SHADER = new RectSphereMap(p_radius, KColorImage.FromSystemBitmap(earthPic));
             sphere.SHADER = new PlanetShader(p_radius);
 
-            for (int y = 0; y < vmp.Height; y++)
+            //the angle limiter only renders pixels near to the object's position
+            bool useAngleLimiter = true;
+            double angleLimit = Math.PI / 48 + Math.Asin(p_radius  / MainCamera.position.Length());
+
+
+            for(int frame = 0; frame < 1; frame++)
             {
-                for (int x = 0; x < vmp.Width; x++)
+
+                //sphere.RotateR(frame * Math.PI / 20.0);
+
+                for (int y = 0; y < vmp.Height; y++)
                 {
-                    int sn = samplesMax;
-                    KColor4[] samples = new KColor4[sn];
-                    for (int s = 0; s < sn; s++)
+                    for (int x = 0; x < vmp.Width; x++)
                     {
-                        double bright = 0;
-                        Vector3 hitClose = sphere.NearHit(camerapos, MainCamera.GetRayCast(x, y));
-                        if(hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                        int sn = samplesMax;
+                        KColor4[] samples = new KColor4[sn];
+                        bool dosetPoint = true;
+
+                        for (int s = 0; s < sn; s++)
                         {
-                            //bright = Vector3.Dot(LAMP, sphere.SHADER.Normal(sphere.position - hitClose));
-                            bright = Vector3.Dot(LAMP, sphere.Grad(hitClose));
-                            samples[s] = sphere.SHADER.Emit(hitClose) + sphere.SHADER.Diffuse(hitClose) * bright;
+                            double bright = 0;
+                            Vector3 currentCameraVector = MainCamera.GetRayCast(x, y);
+                            
+                            //do angle limiter?
+                            double bet = Vector3.Between(sphere.position - camerapos, currentCameraVector);
+                            if (useAngleLimiter && bet < angleLimit)
+                            {
+                                Vector3 hitClose = sphere.NearHit(camerapos, currentCameraVector);
+                                if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                                {
+                                    bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
+                                    //planet
+                                    //samples[s] = sphere.SHADER.Emit(hitClose) + sphere.SHADER.Diffuse(hitClose) * bright;// + path * new KColor4(0.7, 0.7, 0.9);
+
+                                    samples[s] = sphere.SHADER.Diffuse(sphere.GetNewMap(hitClose)) * bright;
+
+
+                                    //facing render
+                                    //samples[s] = Vector3.Dot(-1 * currentCameraVector, sphere.Grad(hitClose)) * new KColor4(1.0, 1.0, 1.0);
+
+                                    //fresnel
+                                    //samples[s] = Vector3.Dot(currentCameraVector, Vector3.Bounce(currentCameraVector, sphere.Grad(hitClose))) * new KColor4(1.0, 1.0, 1.0);
+
+                                    //samples[s] = Vector3.Dot(LAMP, -1 * sphere.SHADER.Normal(hitClose)) * new KColor4(1.0, 1.0, 1.0);
+
+
+                                }
+                                else
+                                {
+                                    samples[s] = new KColor4(0.0, 0.0, 0.0, 1.0);
+                                }
+                            }
+                            else if(useAngleLimiter)
+                            {
+                                dosetPoint = false;
+                            }
+                            if (!useAngleLimiter)
+                            {
+                                Vector3 hitClose = sphere.NearHit(camerapos, currentCameraVector);
+                                if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                                {
+                                    bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
+                                    //planet
+                                    //samples[s] = sphere.SHADER.Emit(hitClose) + sphere.SHADER.Diffuse(hitClose) * bright;// + path * new KColor4(0.7, 0.7, 0.9);
+
+                                    samples[s] = sphere.SHADER.Diffuse(sphere.GetNewMap(hitClose)) * bright;
+
+
+                                    //facing render
+                                    //samples[s] = Vector3.Dot(-1 * currentCameraVector, sphere.Grad(hitClose)) * new KColor4(1.0, 1.0, 1.0);
+
+                                    //fresnel
+                                    //samples[s] = Vector3.Dot(currentCameraVector, Vector3.Bounce(currentCameraVector, sphere.Grad(hitClose))) * new KColor4(1.0, 1.0, 1.0);
+
+                                    //samples[s] = Vector3.Dot(LAMP, -1 * sphere.SHADER.Normal(hitClose)) * new KColor4(1.0, 1.0, 1.0);
+
+
+                                }
+                                else
+                                {
+                                    samples[s] = new KColor4(0.0, 0.0, 0.0, 1.0);
+                                }
+                            }
                         }
-                        else
+                        if (dosetPoint)
                         {
-                            samples[s] = new KColor4(0.0, 0.0, 0.0);
+                            renderImageRaw.SetPoint(x, y, KColor4.Average(samples));
                         }
                     }
-                    renderImageRaw.SetPoint(x, y, KColor4.Average(samples));
                 }
+                //KColorImage bloomIm = renderImageRaw.GetBloomMapped(15, 0.0005);
+
+                vmp = renderImageRaw.ToSystemBitmap();
+
+                TimeSpan renderTimeElapse = DateTime.Now - dtStart;
+
+                vmp.Save("fastrenders\\render" + frame + "_" + samplesMax + "iter_" + Math.Round(renderTimeElapse.TotalMilliseconds) / 1000.0 + "sec.png");
             }
-            //KColorImage bloomIm = renderImageRaw.GetBloomMapped(15, 0.0005);
-
-            vmp = renderImageRaw.ToSystemBitmap();
-
-            TimeSpan renderTimeElapse = DateTime.Now - dtStart;
-
-            vmp.Save("fastrenders\\render01_" + samplesMax + "iter_" + Math.Round(renderTimeElapse.TotalMilliseconds) / 1000.0 + "sec.png");
             DisplayRenderMain.Image = vmp;
         }
 
