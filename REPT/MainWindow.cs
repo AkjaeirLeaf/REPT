@@ -12,9 +12,11 @@ using System.IO;
 using Kirali.MathR;
 using Kirali.Light;
 using Kirali.Framework;
+using Kirali.Celestials;
 using Kirali.Environment.Shaders;
 using Kirali.Environment.Render.Primatives;
 using Kirali.Storage;
+using Kirali.REGS;
 
 using REPT.Objects;
 
@@ -29,7 +31,393 @@ namespace REPT
 
             //drawdat takes comparison values from exported data
 
-            Test4();
+            Test15();
+        }
+
+        //plot the temperature with pressure gradient in the background
+        public void Test15()
+        {
+            double top  = 400; double bottom = 100;
+            double left = 0;   double right  = 100;
+
+            Bitmap bmp = new Bitmap(1920, 1080);
+
+            using(Graphics g = Graphics.FromImage(bmp))
+            {
+
+                //draw gradient
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    double pres = Atmospherics.std_airPressureApprox(1000 * ((double)x / bmp.Width) * (right - left) + left);
+                    double basep = 1013.25;
+                    Pen presp = new Pen(new KColor4(pres * 0.7 / basep, pres * 0.7 / basep, pres * 1.0 / basep, 1.0).ToSystemColor());
+                    g.DrawLine(presp, new Point(x, bmp.Height), new Point(x, 0));
+                }
+                Pen spen = new Pen(Color.Blue, 1.0f);
+                for (int h = 0; h < bmp.Height; h += bmp.Height / 15)
+                {
+                    g.DrawLine(spen, new Point(0, h), new Point(bmp.Width, h));
+                }
+                //draw temp
+                int last = -1;
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    double temp = Atmospherics.std_roughAltTemp(((double)x / bmp.Width) * (right - left) + left);
+                    int temppos = bmp.Height - (int)(bmp.Height * (temp - bottom) / (top - bottom));
+                    Pen tempean = new Pen(Color.Green, 4.0f);
+                    Pen tempenu = new Pen(Color.LightGreen, 4.0f);
+                    if (last == -1) { last = temppos; }
+                    g.DrawLine(tempenu, new Point(x - 1, last-1), new Point(x, temppos-1));
+                    g.DrawLine(tempean, new Point(x - 1, last), new Point(x, temppos));
+                    last = temppos;
+                }
+                Pen mpen = new Pen(Color.Black, 4.0f);
+                for (int h = 0; h <= bmp.Height; h += bmp.Height / 15)
+                {
+                    g.DrawLine(mpen, new Point(0, h), new Point(bmp.Width/35, h));
+                }
+                Pen Bpen = new Pen(Color.Black, 8.0f);
+                for (int h = 0; h <= bmp.Height; h += bmp.Height / 3)
+                {
+                    g.DrawLine(Bpen, new Point(0, h), new Point(bmp.Width / 25, h));
+                }
+                Pen hmpen = new Pen(Color.White, 4.0f);
+                for (int h = 0; h <= bmp.Width; h += bmp.Width / 20)
+                {
+                    g.DrawLine(hmpen, new Point(h, bmp.Height), new Point(h, bmp.Height - bmp.Height / 30));
+                }
+                Pen hBpen = new Pen(Color.White, 8.0f);
+                for (int h = 0; h <= bmp.Width; h += bmp.Width / 4)
+                {
+                    g.DrawLine(hBpen, new Point(h, bmp.Height), new Point(h, bmp.Height - bmp.Height / 20));
+                }
+                bmp.Save("tempgraph1.png");
+                DisplayRenderMain.Image = bmp;
+            }
+        }
+
+
+        //intensity of light hittihg the planet straight on, plotted as a function of wavelength
+        public void Test14()
+        {
+            double T_sun = 5778; //kelvin
+            double R_sun = 695700000; //meters
+            double R_planet = 6371000; //meters
+            double R_orbit = 1.496E+11; //meters
+
+            double lpart = Physics.lumPartial(T_sun);
+
+            //bake table of bbody intensity:
+            //start at arb value 0.1 um
+            //upper is harder bc the falloff is so slow, most activity is low enough around 4 um
+
+
+
+            //                                                  \/ this is to account for planet "normal"
+            //integrate: 4 pi R_planet^2 * from (0 to pi / 2) * cos(theta) * I(wavelength) dtheta
+
+            //I(wl) = (sun wl intensity from table) (transmittance) (distance falloff ratio)
+            //transmittance = e ^ -OPL
+
+            double falloffHandle = (R_sun * R_sun) / (R_orbit * R_orbit);
+
+
+            double dtheta = Math.PI / 2 / 100.0;
+            double accumulateSurf = 0;
+
+            double dwavelength = 0.0002;
+            double wlmin = 0.2; double wlmax = 2.2;
+            int wlct = (int)((wlmax - wlmin) / dwavelength);
+
+
+            //create quick wavelength table
+            double[] wlIntStorage = new double[wlct];
+
+            for (int wlc = 0; wlc < wlct; wlc++)
+            {
+                double currwl = ((double)wlc * dwavelength) + wlmin;
+                wlIntStorage[wlc] = Physics.planckLaw(T_sun, currwl, 'u');
+            }
+
+            double LastSpotTotal = -1;
+            //distance adjustment:
+            //double dchange = R_orbit - (Math.Cos(theta) * R_planet);
+            double last = -1;
+            int wlindex = 1;
+
+            Bitmap bmp = new Bitmap(wlct, (wlct / 2));
+
+            double accumulateWL = 0;
+            double rayang = Math.PI - 0; //orientation of integration is Z = direction of SUN
+            using(Graphics g = Graphics.FromImage(bmp))
+            {
+                g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(Point.Empty, bmp.Size));
+                Pen mpen = new Pen(Color.White, 8.0f);
+                Pen spen = new Pen(Color.White, 2.0f);
+                for (int h = 0; h < bmp.Height; h += bmp.Height / 20)
+                {
+                    g.DrawLine(spen, new Point(0, h), new Point(bmp.Width, h));
+                }
+                for (double wl = wlmin + dwavelength; wl < wlmax - dwavelength; wl += dwavelength)
+                {
+                    Pen pwl = new Pen(KColor4.fullspecWavelengthRGB(wl).ToSystemColor());
+                    double wlintens = wlIntStorage[wlindex];
+
+                    double a = 0;
+                    if (last != -1) { a = last; }
+                    else
+                    {
+                        a = falloffHandle * wlIntStorage[wlindex - 1]
+                            * Math.Pow(Math.E, -1 * Atmospherics.std_OpticalPathLength(10.0 + R_planet, rayang, wl, 2, 30000, R_planet));
+                    }
+
+                    double b = falloffHandle * wlintens * Math.Pow(Math.E, -1 * Atmospherics.std_OpticalPathLength(10.0 + R_planet, rayang, wl + dwavelength, 2, 30000, R_planet));
+
+                    last = b;
+                    //area of a trapezoid approximation to integrate: (a+b)dtheta / 2
+
+                    double area0 = 0.5 * dwavelength * (a + b) / 10E+5; 
+                    accumulateWL += area0;
+                    g.DrawLine(new Pen(Color.AliceBlue), new Point(wlindex - 1, bmp.Height),
+                        new Point(wlindex - 1, bmp.Height - (int)(bmp.Height * (falloffHandle * wlIntStorage[wlindex] / 2000000000))));
+                    g.DrawLine(pwl, new Point(wlindex - 1, bmp.Height), 
+                        new Point(wlindex - 1, bmp.Height - (int)(bmp.Height * ((a / 2000000000)))));
+                    wlindex++;
+                }
+                if (LastSpotTotal != -1)
+                {
+                    double area = Math.Cos(0) * 0.5 * (dtheta * (LastSpotTotal + accumulateWL));
+                    accumulateSurf += area;
+                }
+                else { }
+
+                //draw lines
+                Pen wpen = new Pen(Color.White, 12.0f);
+                g.DrawLine(wpen, new Point(0, 0), new Point(bmp.Width / 40, 0));
+                g.DrawLine(wpen, new Point(0, bmp.Height/2), new Point(bmp.Width / 40, bmp.Height/2));
+                g.DrawLine(wpen, new Point(0, bmp.Height), new Point(bmp.Width / 40, bmp.Height));
+                for (int h = 0; h < bmp.Height; h+= bmp.Height / 20)
+                {
+                    g.DrawLine(mpen, new Point(0, h), new Point(bmp.Width / 80, h));
+                }
+            }
+            LastSpotTotal = accumulateWL;
+            DisplayRenderMain.Image = bmp;
+            Console.WriteLine(LastSpotTotal);
+            bmp.Save("plotsolvtransmitpower.png");
+        }
+
+        //full-scale integration of transmittance over the planet surface
+        public void Test13()
+        {
+            //do spherical integration over entire planet surface.
+            //first I need a quick table of wavelength intensity per square surface meter of blackbody? maybe
+            //since this problem can be arranged to be spherically symmetric, we only need one integral for the surface component
+            double T_sun = 5778; //kelvin
+            double R_sun = 695700000; //meters
+            double R_planet = 6371000; //meters
+            double R_orbit = 1.496E+11; //meters
+
+            double lpart = Physics.lumPartial(T_sun);
+
+            //bake table of bbody intensity:
+            //start at arb value 0.1 um
+            //upper is harder bc the falloff is so slow, most activity is low enough around 4 um
+
+
+
+            //                                                  \/ this is to account for planet "normal"
+            //integrate: 4 pi R_planet^2 * from (0 to pi / 2) * cos(theta) * I(wavelength) dtheta
+
+            //I(wl) = (sun wl intensity from table) (transmittance) (distance falloff ratio)
+            //transmittance = e ^ -OPL
+
+            double falloffHandle = (R_sun * R_sun) / (R_orbit * R_orbit);
+
+
+            double dtheta = Math.PI / 2 / 100.0;
+            double accumulateSurf = 0;
+
+            double dwavelength = 0.005;
+            double wlmin = 0.2; double wlmax = 5.2;
+            int wlct = (int)((wlmax - wlmin) / dwavelength);
+
+
+            //create quick wavelength table
+            double[] wlIntStorage = new double[wlct];
+
+            for (int wlc = 0; wlc < wlct; wlc++)
+            {
+                double currwl = ((double)wlc * dwavelength) + wlmin;
+                wlIntStorage[wlc] = Physics.planckLaw(T_sun, currwl, 'u');
+            }
+
+            double LastSpotTotal = -1;
+            //begin integrate.
+            for (double theta = 0; theta < Math.PI / 2; theta += dtheta)
+            {
+                //get view angle: 
+                double rayang = Math.PI - theta; //orientation of integration is Z = direction of SUN
+
+                //distance adjustment:
+                //double dchange = R_orbit - (Math.Cos(theta) * R_planet);
+                double last = -1;
+                int wlindex = 1;
+                
+                double accumulateWL = 0;
+                for (double wl = wlmin + dwavelength; wl < wlmax - dwavelength; wl += dwavelength)
+                {
+                    double wlintens = wlIntStorage[wlindex];
+
+                    double a = 0;
+                    if (last != -1) { a = last; }
+                    else
+                    {
+                        a = wlIntStorage[wlindex - 1]
+                            * Math.Pow(Math.E, -1 * Atmospherics.std_OpticalPathLength(10.0 + R_planet, rayang, wl, 2, 30000, R_planet)); 
+                    }
+
+                    double b = wlintens * Math.Pow(Math.E, -1 * Atmospherics.std_OpticalPathLength(10.0 + R_planet, rayang, wl + dwavelength, 2, 30000, R_planet));
+
+                    last = b;
+
+                    //area of a trapezoid approximation to integrate: (a+b)dtheta / 2
+                    
+                    //accumulate += area;
+                    accumulateWL += 0.5 * dwavelength * (a + b) / 10E+5;
+                    wlindex++;
+                }
+                if(LastSpotTotal != -1)
+                {
+                    double area = Math.Cos(theta) * 0.5 * (dtheta * (LastSpotTotal + accumulateWL));
+                    accumulateSurf += area;
+                }
+                else { }
+                LastSpotTotal = accumulateWL;
+            }
+
+            double totalPow = accumulateSurf * 4 * R_planet * R_planet * falloffHandle;
+
+            Console.WriteLine(totalPow);
+            //Console.WriteLine(lpart);
+        }
+
+        //test of Plank's Law function
+        public void Test12()
+        {
+            //Console.WriteLine(Physics.lumPartial(5778));
+            //Console.WriteLine(Atmospherics.std_OpticalPathLength())
+        }
+
+        public void Test11()
+        {
+            double p_radius = 6371.0;
+            Sphere sphere = new Sphere(new Vector3(0.0, 0.0, 0.0), p_radius);
+            sphere.SHADER = new PlanetShader(p_radius);
+            int dres = 4;
+            KColorImage bake = new KColorImage(2048 / dres, 1024 / dres);
+            for (int y = 0; y < bake.height; y++)
+            {
+                //double theta = ((double)y / bake.height + 0.5) / 2 * Math.PI;
+                double theta = (1.0 - (double)y / bake.height) * Math.PI;
+                for (int x = 0; x < bake.width; x++)
+                {
+                    double phi = (double)x / bake.width * Math.PI * 2;
+                    Vector3 pos = p_radius * new Vector3(Math.Cos(phi), Math.Sin(phi), 0);
+                    double r = Math.Sqrt(pos.X * pos.X + pos.Y * pos.Y);
+                    pos.Z = Math.Sin(theta - Math.PI / 2) * p_radius;
+                    bake.SetPoint(x, y, sphere.SHADER.Diffuse(pos));
+                }
+            }
+            Bitmap bakebmp = bake.ToSystemBitmap(); bakebmp.Save("shader_diffuse.png");
+            DisplayRenderMain.Image = bakebmp;
+        }
+
+        //takes starfield data from REGS and turns it into a KCOLIMAG
+        public void Test10()
+        {
+            RGalaxy kjianoaa = RGalaxy.FromFolder("D:\\Desktop Control\\VisualStudio\\V C# Net Projects\\REGS\\REGS\\bin\\Debug\\kjianoaa");
+
+            Vector3 vpos = Vector3.Zero;
+            KColorImage kci = new KColorImage(2048, 1024);
+            for(int spc = 0; spc < kjianoaa.starpoints.Length; spc++)
+            {
+                StarData sp = kjianoaa.starpoints[spc];
+                double xr = sp.X - vpos.X;
+                double yr = sp.Y - vpos.Y;
+                double zr = sp.Z - vpos.Z;
+
+                double dist = Math.Sqrt(xr * xr + yr * yr + zr * zr);
+
+                double kxp;
+                double kyp;
+
+                double phi = 0;
+                if (xr < 0)
+                { phi = Math.PI + Math.Atan(yr / xr); }
+                else
+                { phi = Math.Atan(yr / xr); }
+
+                //double r = Math.Sqrt(point.X * point.X + point.Y * point.Y);
+                //double thet = Math.PI - (Math.Atan(point.Z / r) + Math.PI / 2);
+            }
+        }
+        
+        //full-scale integration of power over the planet surface, not including atmospheric effects
+        public void Test9()
+        {
+            //do spherical integration over entire planet surface.
+            //first I need a quick table of wavelength intensity per square surface meter of blackbody? maybe
+            //since this problem can be arranged to be spherically symmetric, we only need one integral for the surface component
+            double T_sun = 5778; //kelvin
+            double R_sun = 695700000; //meters
+            double R_planet = 6371000; //meters
+            double R_orbit = 1.496E+11; //meters
+
+            double lpart = Physics.lumPartial(5778);
+
+            //bake table of bbody intensity:
+            //start at arb value 0.1 um
+            //upper is harder bc the falloff is so slow, most activity is low enough around 4 um
+
+            //double dwavelength = 0.001;
+            //double wlmin = 0.1; double wlmax = 4.0;
+            //double wlct = (wlmax - wlmin) / dwavelength;
+            //for(double wl = wlmin; wl < wlmax; wl += dwavelength)
+            //{
+            //
+            //}
+
+
+            //                                                  \/ this is to account for planet "normal"
+            //integrate: 4 pi R_planet^2 * from (0 to pi / 2) * cos(theta) * I(wavelength) dtheta
+            
+            //I(wl) = (sun wl intensity from table) (transmittance) (distance falloff ratio)
+            //transmittance = e ^ -OPL
+
+            double falloffHandle = (R_sun * R_sun) / (R_orbit * R_orbit);
+
+
+            double dtheta = Math.PI / 2 / 10000.0;
+            double accumulate = 0;
+
+            //begin integrate.
+            for(double theta = 0; theta < Math.PI / 2; theta += dtheta)
+            {
+                //get view angle: 
+                double rayang = Math.PI - theta; //orientation of integration is Z = direction of SUN
+
+                //distance adjustment:
+                //double dchange = R_orbit - (Math.Cos(theta) * R_planet);
+
+                //area of a trapezoid approximation to integrate: (a+b)dtheta / 2
+                double area = 0.5 * (dtheta * (Math.Cos(theta) + Math.Cos(theta + dtheta)));
+                accumulate += area;
+            }
+
+            double totalPow = accumulate * 4 * lpart * R_planet * R_planet * falloffHandle;
+
+            Console.WriteLine(totalPow);
         }
 
         //plotting surface values for OPL
@@ -422,7 +810,8 @@ namespace REPT
             //Vector3 camerarot = new Vector3(Math.PI/2, 0, 0);
             //Vector3 camerarot = new Vector3(Math.PI / 3, -1 * Math.PI / 4, 0);
 
-            Vector3 LAMP = new Vector3(-2.1, -3.2, -1.3).Normalize();
+            //Vector3 LAMP = new Vector3(-2.1, -3.2, -1.3).Normalize();
+            Vector3 LAMP_POS = new Vector3(-5 * p_radius, -5 * p_radius, 1); double LAMP_LUM = 6455548880.0;
             int dres = 4;
             Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
 
@@ -445,10 +834,10 @@ namespace REPT
 
             //the angle limiter only renders pixels near to the object's position
             bool useAngleLimiter = true;
-            double angleLimit = Math.PI / 48 + Math.Asin(p_radius  / MainCamera.position.Length());
+            double angleLimit = Math.PI / 48 + Math.Asin(p_radius / MainCamera.position.Length());
+            double sunAngleLimit = Math.Asin(100 / MainCamera.position.Length());
 
-
-            for(int frame = 0; frame < 1; frame++)
+            for (int frame = 0; frame < 1; frame++)
             {
 
                 //sphere.RotateR(frame * Math.PI / 20.0);
@@ -465,7 +854,13 @@ namespace REPT
                         {
                             double bright = 0;
                             Vector3 currentCameraVector = MainCamera.GetRayCast(x, y);
-                            
+                            //do point lamp draw
+                            double betlamp = Vector3.Between(LAMP_POS - camerapos, currentCameraVector);
+                            if(betlamp < sunAngleLimit)
+                            {
+                                
+                            }
+
                             //do angle limiter?
                             double bet = Vector3.Between(sphere.position - camerapos, currentCameraVector);
                             if (useAngleLimiter && bet < angleLimit)
@@ -473,7 +868,9 @@ namespace REPT
                                 Vector3 hitClose = sphere.NearHit(camerapos, currentCameraVector);
                                 if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
                                 {
-                                    bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
+                                    double lampdist = (LAMP_POS - hitClose).Length();
+                                    bright = -1 * LAMP_LUM/(lampdist * lampdist) * Vector3.Dot((LAMP_POS - hitClose).Normalize(), sphere.Grad(hitClose));
+                                    //bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
                                     //planet
                                     //samples[s] = sphere.SHADER.Emit(hitClose) + sphere.SHADER.Diffuse(hitClose) * bright;// + path * new KColor4(0.7, 0.7, 0.9);
 
@@ -504,7 +901,7 @@ namespace REPT
                                 Vector3 hitClose = sphere.NearHit(camerapos, currentCameraVector);
                                 if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
                                 {
-                                    bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
+                                    //bright = -1 * Vector3.Dot(LAMP, sphere.Grad(hitClose));
                                     //planet
                                     //samples[s] = sphere.SHADER.Emit(hitClose) + sphere.SHADER.Diffuse(hitClose) * bright;// + path * new KColor4(0.7, 0.7, 0.9);
 

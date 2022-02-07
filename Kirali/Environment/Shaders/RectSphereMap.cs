@@ -36,7 +36,7 @@ namespace Kirali.Environment.Shaders
 
             double r = Math.Sqrt(point.X * point.X + point.Y * point.Y);
             double thet = Math.PI - (Math.Atan(point.Z / r) + Math.PI / 2);
-
+            //- thet + pi/2
             //phi += Math.PI / 2;
 
 

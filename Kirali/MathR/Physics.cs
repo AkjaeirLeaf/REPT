@@ -87,6 +87,21 @@ namespace Kirali.MathR
             return (num1 / (den1 * den2));
         }
 
+        public static double lumTotal(double temperature, double radius)
+        {
+            return (4 * Math.PI * sigsb * (radius * radius) * (temperature * temperature * temperature * temperature));
+        }
+
+        /// <summary>
+        /// <tooltip>Returns the total Power emitted from all wavelengths per square surface meter of a blackbody with constant temperature. Radius not included.</tooltip>
+        /// </summary>
+        /// <param name="temperature"></param>
+        /// <returns></returns>
+        public static double lumPartial(double temperature)
+        {
+            return (sigsb * (temperature * temperature * temperature * temperature));
+        }
+
         public static double maxWavelengthEmission(double temperature)
         {
             return 0;

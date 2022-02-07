@@ -369,12 +369,64 @@ namespace Kirali.Light
             }
         }
 
+        public static KColor4 infraredWavelengthToRGB(double wavelength, char measure = 'u')
+        {
+            KColor4 outColor = new KColor4(0.0, 0.0, 0.0);
+            KColor4[] IRS = new KColor4[3];
+
+            double Wavelength = wavelength * 1000;
+            switch (measure)
+            {
+                case 'u': //input is in micrometers
+                    Wavelength = wavelength * 1000;
+                    break;
+                case 'n': //input is in nanometers
+                    Wavelength = wavelength;
+                    break;
+                case 'c': //input is in centimeters
+                    Wavelength = wavelength * 10000000.0;
+                    break;
+                default: //input type not recognised, presume micrometers
+                    Wavelength = wavelength * 1000;
+                    break;
+            }
+
+            if (Wavelength < 1001000 && Wavelength > 780)
+            {
+                //THREE RANGES, UVA, UVB, UVC
+
+                //created some gaussians to fake the three sections
+                double intensityA = Math.Pow(Math.E, -1 * Math.Pow((Wavelength - 1090.0) / 260, 8.0));
+                double intensityB = Math.Pow(Math.E, -1 * Math.Pow((Wavelength - 2200.0) / 820, 8.0));
+                double intensityC = Math.Pow(Math.E, -1 * Math.Pow((Wavelength - 501500.0) / 498500, 1000.0));
+
+                //some basic theme colors chosen in violetish, maybe I'll add some custom or more adv themes later idk
+                IRS[0] = new KColor4(2.0 / 3, 0, 2.4 / 3) * intensityA;
+                IRS[1] = new KColor4(1.4 / 3, 0, 1.4 / 3) * intensityB;
+                IRS[2] = new KColor4(1.0 / 3, 0, 0.5 / 3) * intensityC;
+
+                IRS[0].A_fill();
+                IRS[1].A_fill();
+                IRS[2].A_fill();
+
+                //use the fancy KColor Intensity Mix function!
+                outColor = IrgbMix(IRS);
+
+                return outColor;
+            }
+            else
+            {
+                return KColor4.BLACK;
+            }
+        }
+
         public static KColor4 fullspecWavelengthRGB(double wavelength, char measure = 'u')
         {
-            KColor4[] Colors = new KColor4[2];
+            KColor4[] Colors = new KColor4[3];
 
             Colors[0] = visibleWavelengthToRGB(wavelength, measure);
             Colors[1] = ultravioletWavelengthToRGB(wavelength, measure);
+            Colors[2] = infraredWavelengthToRGB(wavelength, measure);
 
             return IrgbMix(Colors);
         }

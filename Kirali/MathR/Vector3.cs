@@ -338,6 +338,35 @@ namespace Kirali.MathR
             }
         }
 
+        public Vector3 GetClose(Vector3 init, Vector3 target)
+        {
+            Vector3 dto = target - init; double d = dto.Length();
+            dto *= 1.0 / d; dto.Form = VectorForm.DIRECTION;
+            Vector3 the = new Vector3(this).Normalize();
+            double angle = Math.Acos(Dot(dto, the));
+            double range = d * Math.Cos(angle);
+            Vector3 Closest = init + the * range;
+            return Closest;
+        }
+
+        /// <summary>
+        /// <tooltip>Returns the point closest to a given target point when following a ray in the given direction.</tooltip>
+        /// </summary>
+        /// <param name="pointing"></param>
+        /// <param name="init"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static Vector3 GetClose(Vector3 pointing, Vector3 init, Vector3 target)
+        {
+            Vector3 dto = target - init; double d = dto.Length();
+            dto *= 1.0 / d; dto.Form = VectorForm.DIRECTION;
+            Vector3 the = new Vector3(pointing).Normalize();
+            double angle = Math.Acos(Dot(dto, the));
+            double range = d * Math.Cos(angle);
+            Vector3 Closest = init + the * range;
+            return Closest;
+        }
+
         public static Vector3 RotateU(Vector3 vector, Vector3 Uaxis, double angle)
         {
             Matrix rot = Matrix.RotationU(Uaxis, angle);
