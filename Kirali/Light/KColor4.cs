@@ -400,7 +400,6 @@ namespace Kirali.Light
                 double intensityB = Math.Pow(Math.E, -1 * Math.Pow((Wavelength - 2200.0) / 820, 8.0));
                 double intensityC = Math.Pow(Math.E, -1 * Math.Pow((Wavelength - 501500.0) / 498500, 1000.0));
 
-                //some basic theme colors chosen in violetish, maybe I'll add some custom or more adv themes later idk
                 IRS[0] = new KColor4(2.0 / 3, 0, 2.4 / 3) * intensityA;
                 IRS[1] = new KColor4(1.4 / 3, 0, 1.4 / 3) * intensityB;
                 IRS[2] = new KColor4(1.0 / 3, 0, 0.5 / 3) * intensityC;

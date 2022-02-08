@@ -29,9 +29,19 @@ namespace REPT
         {
             InitializeComponent();
 
-            //drawdat takes comparison values from exported data
-
+            
             Test15();
+        }
+
+        //test using a polynomial interpolation method
+        public void Test16()
+        {
+            double[] xs = new double[] {   1,   2,   3,   4,   5,   6,   7 };
+            double[] ys = new double[] { 2.0, 5.0, 1.0, 2.0, 2.5, 3.0, 4.0 };
+
+            double xpos = 4.5;
+
+            Console.WriteLine("(" + xpos + ", " + Interpolate.PolynomialSeries(xpos, xs, ys) + ")");
         }
 
         //plot the temperature with pressure gradient in the background
@@ -60,12 +70,25 @@ namespace REPT
                 }
                 //draw temp
                 int last = -1;
+                int lastst = -1;
                 for (int x = 0; x < bmp.Width; x++)
                 {
-                    double temp = Atmospherics.std_roughAltTemp(((double)x / bmp.Width) * (right - left) + left);
+                    //new model
+                    double xposconvert = ((double)x / bmp.Width) * (right - left) + left;
+                    double tempst = Interpolate.FourPointSeries(xposconvert, Atmospherics.std_atm1976_heights, Atmospherics.std_atm1976_tempers);
+                    int temppos1 = bmp.Height - (int)(bmp.Height * (tempst - bottom) / (top - bottom));
+                    Pen tempean  = new Pen(Color.DarkRed, 4.0f);
+                    Pen tempenu  = new Pen(Color.Magenta, 4.0f);
+                    if (lastst == -1) { last = temppos1; }
+                    g.DrawLine(tempenu, new Point(x - 1, lastst - 1), new Point(x, temppos1 - 1));
+                    g.DrawLine(tempean, new Point(x - 1, lastst), new Point(x, temppos1));
+                    lastst = temppos1;
+
+                    //old model
+                    double temp = Atmospherics.std_roughAltTemp(xposconvert);
                     int temppos = bmp.Height - (int)(bmp.Height * (temp - bottom) / (top - bottom));
-                    Pen tempean = new Pen(Color.Green, 4.0f);
-                    Pen tempenu = new Pen(Color.LightGreen, 4.0f);
+                    tempean = new Pen(Color.Green, 4.0f);
+                    tempenu = new Pen(Color.LightGreen, 4.0f);
                     if (last == -1) { last = temppos; }
                     g.DrawLine(tempenu, new Point(x - 1, last-1), new Point(x, temppos-1));
                     g.DrawLine(tempean, new Point(x - 1, last), new Point(x, temppos));
@@ -96,8 +119,7 @@ namespace REPT
             }
         }
 
-
-        //intensity of light hittihg the planet straight on, plotted as a function of wavelength
+        //intensity of light hitting the planet straight on, plotted as a function of wavelength
         public void Test14()
         {
             double T_sun = 5778; //kelvin
@@ -152,8 +174,8 @@ namespace REPT
             using(Graphics g = Graphics.FromImage(bmp))
             {
                 g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(Point.Empty, bmp.Size));
-                Pen mpen = new Pen(Color.White, 8.0f);
-                Pen spen = new Pen(Color.White, 2.0f);
+                Pen mpen = new Pen(Color.White, 12.0f);
+                Pen spen = new Pen(Color.White,  5.0f);
                 for (int h = 0; h < bmp.Height; h += bmp.Height / 20)
                 {
                     g.DrawLine(spen, new Point(0, h), new Point(bmp.Width, h));
@@ -192,7 +214,7 @@ namespace REPT
                 else { }
 
                 //draw lines
-                Pen wpen = new Pen(Color.White, 12.0f);
+                Pen wpen = new Pen(Color.White, 14.0f);
                 g.DrawLine(wpen, new Point(0, 0), new Point(bmp.Width / 40, 0));
                 g.DrawLine(wpen, new Point(0, bmp.Height/2), new Point(bmp.Width / 40, bmp.Height/2));
                 g.DrawLine(wpen, new Point(0, bmp.Height), new Point(bmp.Width / 40, bmp.Height));
@@ -207,7 +229,7 @@ namespace REPT
             bmp.Save("plotsolvtransmitpower.png");
         }
 
-        //full-scale integration of transmittance over the planet surface
+        //full integration of transmittance over the planet surface
         public void Test13()
         {
             //do spherical integration over entire planet surface.
@@ -308,7 +330,8 @@ namespace REPT
             //Console.WriteLine(Physics.lumPartial(5778));
             //Console.WriteLine(Atmospherics.std_OpticalPathLength())
         }
-
+        
+        //bake equirectangular map of shader
         public void Test11()
         {
             double p_radius = 6371.0;
@@ -363,7 +386,7 @@ namespace REPT
             }
         }
         
-        //full-scale integration of power over the planet surface, not including atmospheric effects
+        //full integration of power over the planet surface, not including atmospheric effects
         public void Test9()
         {
             //do spherical integration over entire planet surface.
@@ -455,7 +478,7 @@ namespace REPT
             File.WriteAllText("kirExportPaths.tsv", saveConts);
         }
 
-        //determining optical depth as a function of Theta!!!!!!!!
+        //determining optical depth as a function of Theta
         public void Test7()
         {
             double theta = Math.PI;// / 2; //angle between center vector and raycast
@@ -537,7 +560,7 @@ namespace REPT
             bmp.Save("opticpath\\fdraw_opticDepth_l" + wavelength + "um_z" + Math.Round(d - RADIUS) + "m.png");
         }
 
-        //determining optical depth!!!!!!!
+        //determining optical depth
         public void Test6()
         {
             double theta = Math.PI;// / 2; //angle between center vector and raycast
@@ -642,7 +665,7 @@ namespace REPT
            bmp.Save("fdraw_opticDepthWLChart.png");
         }
 
-        //determining pressure depth!!!!!!!
+        //determining pressure depth
         public void Test5()
         {
             double theta = Math.PI / 4;// / 2; //angle between center vector and raycast
