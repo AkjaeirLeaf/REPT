@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REPT", "REPT\REPT.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kirali", "Kirali\Kirali.csproj", "{43AF642D-6F48-48BF-BE1E-ECB98775B43A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiraliConsole", "KiraliConsole\KiraliConsole.csproj", "{F3F0F9D9-052F-48E3-9151-E21ED736B4E2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiraliConsoleLab", "KiraliConsoleLab\KiraliConsoleLab.csproj", "{88482193-B142-4CF3-A4B6-F4189556CC19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{43AF642D-6F48-48BF-BE1E-ECB98775B43A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43AF642D-6F48-48BF-BE1E-ECB98775B43A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43AF642D-6F48-48BF-BE1E-ECB98775B43A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F3F0F9D9-052F-48E3-9151-E21ED736B4E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F3F0F9D9-052F-48E3-9151-E21ED736B4E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F3F0F9D9-052F-48E3-9151-E21ED736B4E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F3F0F9D9-052F-48E3-9151-E21ED736B4E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88482193-B142-4CF3-A4B6-F4189556CC19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88482193-B142-4CF3-A4B6-F4189556CC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88482193-B142-4CF3-A4B6-F4189556CC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88482193-B142-4CF3-A4B6-F4189556CC19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

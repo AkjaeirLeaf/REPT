@@ -57,19 +57,22 @@ namespace Kirali.MathR
             return sign * y;
         }
 
-        public static double planckLaw(double temperature, double wavelength, char measure = 'm')
+        public static double planckLaw(double temperature, double wavelength, char measure = 'u')
         {
             double L = wavelength;
             switch (measure)
             {
-                case 'u': //input is in micrometers
-                    L = wavelength / 1000000.0;
-                    break;
                 case 'n': //input is in nanometers
-                    L = wavelength / 1000000000.0;
+                    L = wavelength / 10E9;
+                    break;
+                case 'u': //input is in micrometers
+                    L = wavelength / 10E6;
+                    break;
+                case 'm': //input is in milimeters
+                    L = wavelength / 10E3;
                     break;
                 case 'c': //input is in centimeters
-                    L = wavelength * 100.0;
+                    L = wavelength / 100.0;
                     break;
                 case 'M': //input is in METERS
                     L = wavelength;
@@ -78,6 +81,7 @@ namespace Kirali.MathR
                     L = wavelength;
                     break;
             }
+
 
             double num1 = 2 * Math.PI * h * c * c;
             double den1 = Math.Pow(L, 5);

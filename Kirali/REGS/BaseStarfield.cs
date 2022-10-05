@@ -11,6 +11,6 @@ namespace Kirali.REGS
         public int MajorClassification = 0;
         public int BranchMasterId = 0;
 
-        public StarData[] starList;
+        public SystemPointStorage[] starList;
     }
 }

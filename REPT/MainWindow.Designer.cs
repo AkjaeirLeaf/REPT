@@ -29,6 +29,7 @@ namespace REPT
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.DisplayRenderMain = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.DisplayRenderMain)).BeginInit();
             this.SuspendLayout();
@@ -49,6 +50,7 @@ namespace REPT
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.DisplayRenderMain);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainWindow";
             this.Text = "Rift Engine Planet Tools";
             ((System.ComponentModel.ISupportInitialize)(this.DisplayRenderMain)).EndInit();

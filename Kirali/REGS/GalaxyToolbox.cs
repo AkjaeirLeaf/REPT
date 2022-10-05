@@ -11,6 +11,8 @@ namespace Kirali.REGS
     /// </summary>
     public class GalaxyToolbox
     {
+        public static readonly string currentVersion = "v22x09m09_v1";
+
 
     }
 }

@@ -23,9 +23,13 @@ namespace Kirali.Light
         //rot = thet, phi, r
         public Vector3 rotation = new Vector3(Vector3.Zero);
 
-        private Vector3 C_dir = new Vector3(0, 0, -1);
-        private Vector3 C_thet = new Vector3(1, 0, 0);
-        private Vector3 C_phi = new Vector3(0, 1, 0);
+        private Vector3 C_dir = new Vector3(0, 0, -1); //Z
+        private Vector3 C_thet = new Vector3(1, 0, 0); //X
+        private Vector3 C_phi = new Vector3(0, 1, 0);  //Y
+
+        public Vector3 CameraX { get { return C_thet; } }
+        public Vector3 CameraY { get { return C_phi; } }
+        public Vector3 CameraZ { get { return C_dir; } }
 
         public Camera()
         {
@@ -51,6 +55,12 @@ namespace Kirali.Light
 
         //TEMPORARY TEST SETTINGS
         private Vector3 SunLamp = (new Vector3(3, 4, -7)).Normalize();
+
+        public void Move(double distance, Vector3 direction)
+        {
+            position += (new Vector3(direction).Normalize() * distance);
+        }
+
 
         public void CReset()
         {
@@ -144,6 +154,39 @@ namespace Kirali.Light
 
             return kc4;
         }
+
+        public Vector2 PointToScreen(Vector3 position)
+        {
+            Vector2 result = new Vector2(0, 0, Vector2.VectorForm.INFINITY);
+
+            Vector3 pos_trans = position - this.position;
+            double f = Math.PI / 3.0;
+            double a = (double)(Height) / Width;
+            double hf = a * f;
+            double sinF = Math.Sin(fov);
+            Matrix R = new Matrix(3, 3);
+            R.Set(new double[]
+            {
+                C_thet.X, C_thet.Y, C_thet.Z,
+                C_phi.X,  C_phi.Y,  C_phi.Z,
+                C_dir.X,  C_dir.Y,  C_dir.Z
+            });
+
+            Vector3 pos_rotTrans = (R * pos_trans.ToMatrix()).ToVector3();
+
+            double p1Xat = pos_rotTrans.Z * sinF;
+            double p1Yat = pos_rotTrans.Z * sinF;
+            Vector2 p1 = new Vector2();
+            p1.X = (pos_rotTrans.X / p1Xat);
+            p1.Y = (pos_rotTrans.Y / p1Yat) / a;
+
+            if(pos_rotTrans.Z > 0) { result.Form = Vector2.VectorForm.POSITION; } //Else is behind camera.
+            result.X = p1.X;
+            result.Y = p1.Y;
+
+            return result;
+        }
+
 
     }
 }

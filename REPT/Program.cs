@@ -6,6 +6,21 @@ using System.Windows.Forms;
 
 namespace REPT
 {
+    
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            using (REPTsysWindow systemsWindow = new REPTsysWindow(1080, 640, "Rift Engine Planet Tools"))
+            {
+                systemsWindow.Run(60.0);
+                systemsWindow.Dispose();
+            }
+        }
+    }
+    
+
+    /*
     static class Program
     {
         /// <summary>
@@ -19,4 +34,5 @@ namespace REPT
             Application.Run(new MainWindow());
         }
     }
+    */
 }

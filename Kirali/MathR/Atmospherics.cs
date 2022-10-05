@@ -233,7 +233,7 @@ namespace Kirali.MathR
         //Rayleigh Optical Depth
         //tau(wavelength, z0) = integral z0 -> inf (Beta(wavelength, z) dz)
 
-        public static double std_OpticalPathLength(double distance, double theta, double wavelength, double precision = 1, double upper = 50000, double RADIUS = 6371000)
+        public static double std_OpticalPathLength(double distance, double theta, double wavelength, double precision = 1, double lower = 0.0, double upper = 50000, double RADIUS = 6371000)
         {
             double d = distance;
             Environment.Render.Primatives.Sphere sphere = new Environment.Render.Primatives.Sphere(new Vector3(0.0, 0.0, 0.0), RADIUS);
@@ -253,7 +253,7 @@ namespace Kirali.MathR
             //our integration precision \/
             double drange = precision;
             double Accumulate = 0;
-            double range = 0.0;
+            double range = lower;
             double h_next = Math.Sqrt(range * range + d * d + 2 * range * d * Math.Cos(Math.PI - theta)) - RADIUS;
 
             //run function for current
@@ -265,9 +265,9 @@ namespace Kirali.MathR
             bool doBounce = false;
 
 
-            double travelled = 0.0;
+            double travelled = lower;
 
-            for (range = 0.0; travelled < upper; travelled += drange)
+            for (range = lower; travelled < upper; travelled += drange)
             {
                 //run function for next
 
@@ -299,7 +299,22 @@ namespace Kirali.MathR
             return Accumulate;
         }
 
+        //simpler rayleigh based phase formula
+        public static double PhaseRayleigh(double theta)
+        {
+            return (3.0 / 4) * (1 + Math.Pow(Math.Cos(theta), 2));
+        }
 
+        //Chandrasekhar's formula for phase scatter, wavelength dependent.
+        public static double PhaseChandra(double theta, double wavelength, char measure = 'u')
+        {
+            double rhon = std_depolanisotropy(wavelength, measure);
+            double gamma = rhon / (2 - rhon);
+
+            double phase = (3 / (4 * (1 + 2 * gamma))) * ((1 + 3 * gamma) + (1 - gamma) * Math.Pow(Math.Cos(theta), 2));
+
+            return phase;
+        }
 
     }
 }

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Drawing;
 
+using Kirali.MathR;
+
 
 namespace Kirali.Light
 {
@@ -133,14 +135,19 @@ namespace Kirali.Light
 
         public static KColor4 Average(KColor4[] colors)
         {
+            int total = 0;
             KColor4 kc4 = new KColor4();
 
             for(int c = 0; c < colors.Length; c++)
             {
-                kc4 += colors[c];
+                if (kc4 != null)
+                {
+                    total++;
+                    kc4 += colors[c];
+                }
             }
 
-            kc4 /= colors.Length;
+            kc4 /= total;
 
             return kc4;
         }
@@ -242,7 +249,23 @@ namespace Kirali.Light
 
         public static KColor4 operator +(KColor4 c1, KColor4 c2)
         {
-            return new KColor4(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a);
+            //find out why some values come in as null
+            if(c1 != null && c2 != null)
+            {
+                return new KColor4(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a);
+            }
+            else if (c1 != null && c2 == null)
+            {
+                return new KColor4(c1.r, c1.g, c1.b, c1.a);
+            }
+            else if (c1 == null && c2 != null)
+            {
+                return new KColor4(c2.r, c2.g, c2.b, c2.a);
+            }
+            else
+            {
+                return KColor4.BLACK;
+            }
         }
 
         public static KColor4 operator /(KColor4 c1, double a)
@@ -274,7 +297,110 @@ namespace Kirali.Light
 
         public static KColor4 visibleBlackBodyApprox(double T)
         {
-            return null;
+            return new KColor4(R_TotalEmit(T), G_TotalEmit(T), B_TotalEmit(T));
+        }
+
+        //PRIVATE funcs for the big ol' bba^
+
+        public static double R_TotalEmit(double T)
+        {
+            double range_min =  200;
+            double range_max = 1000;
+
+            double precision = 1;
+
+            double total = 0;
+            for (double place = range_min; place < range_max; place++)
+            {
+                double area = (precision) * (R_FullS(place, T) + R_FullS(place + precision, T)) / 2;
+                total += area;
+            }
+
+            return total;
+        }
+
+        public static double G_TotalEmit(double T)
+        {
+            double range_min = 200;
+            double range_max = 800;
+
+            double precision = 1;
+
+            double total = 0;
+            for (double place = range_min; place < range_max; place++)
+            {
+                double area = (precision) * (G_FullS(place, T) + G_FullS(place + precision, T)) / 2;
+                total += area;
+            }
+
+            return total;
+        }
+
+        public static double B_TotalEmit(double T)
+        {
+            double range_min = 250;
+            double range_max = 650;
+
+            double precision = 1;
+
+            double total = 0;
+            for (double place = range_min; place < range_max; place++)
+            {
+                double area = (precision) * (B_FullS(place, T) + B_FullS(place + precision, T)) / 2;
+                total += area;
+            }
+
+            return total;
+        }
+
+        public static double R_FullS(double nanometers, double t_obj)
+        {
+            double r_val = A_T(nanometers, t_obj) * (0.5 * Math.Pow(Math.E, -1 * Math.Pow(nanometers / 37.5 - 10.7, 2))
+                + Math.Pow(Math.E, -1 * Math.Pow(nanometers / 122 - 5.3, 6)));
+            return r_val;
+        }
+
+        public static double G_FullS(double nanometers, double t_obj)
+        {
+            double g_val = A_T(nanometers, t_obj) * Math.Pow(Math.E, -1 * Math.Pow(nanometers / 81.348 - 6.6, 4));
+            return g_val;
+        }
+
+        public static double B_FullS(double nanometers, double t_obj)
+        {
+            double b_val_left  = A_T(nanometers, t_obj) * Math.Pow(Math.E, -1 * Math.Pow(nanometers / 60.587 - 7.327, 6));
+            double b_val_right = A_T(nanometers, t_obj) * Math.Pow(Math.E, -1 * Math.Pow(nanometers / 40     - 10.5 , 2));
+            if(nanometers < 387.225) { return b_val_left; }
+            else { return b_val_right; }
+        }
+
+        public static double A_T(double t_spec, double t_obj)
+        {
+            double p1 = Bv_L(Physics.wien / t_obj * 10E8, t_obj);
+            double p2in = -1 * Math.Pow(((t_spec - (10E8 * Physics.wien / t_obj)) / 370) * Math.Sqrt(t_obj / 7000), 2);
+
+            return p1 * Math.Pow(Math.E, p2in);
+        }
+
+        public static double Bv_L(double nanometers, double t_obj)
+        {
+            double num1 = 2 * Math.PI * Physics.h * Physics.c * Physics.c;
+            double den1 = 1 / Math.Pow(nanometers / 10E8, 5);
+            double den2 = Math.Pow(Math.E, Physics.h * Physics.c * (1.0 / (Physics.kb * t_obj * (nanometers / 10E8)))) - 1;
+
+            double dfit = 1.0 / 10E14;
+
+            return num1 * den1 / den2;
+        }
+
+        public KColor4 SafeDeExpose(double limiter)
+        {
+            double r_reduced = this.R * limiter;
+            double g_reduced = this.G * limiter;
+            double b_reduced = this.B * limiter;
+            double a_new = this.a;
+
+            return new KColor4(r_reduced, g_reduced, b_reduced, a_new);
         }
 
         /// <summary>
@@ -522,6 +648,15 @@ namespace Kirali.Light
             return new KColor4(Red, Green, Blue);
         }
 
+        public override string ToString()
+        {
+            return "KColor4_Format"
+                + "\n[ Red:   " + R + ","
+                + "\n  Green: " + G + ","
+                + "\n  Blue:  " + B + " ]";
+
+            //return base.ToString();
+        }
 
         //KCOLOR4 DEFAULT COLORS
         public static KColor4 WHITE { get { return new KColor4(1.0, 1.0, 1.0, 1.0); } }

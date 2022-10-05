@@ -120,9 +120,9 @@ namespace Kirali.MathR
             double lcos = 1 - cos;
 
             uRotation.Set(new double[9] {
-            cos + (ux * ux * lcos), (ux * uy * lcos) - (uz * sin), (ux * uz * lcos) + (uy * sin),
-            (uy * ux * lcos) + (uz * sin), cos + (uy * uy * lcos), (uy * uz * lcos) - (ux * sin),
-            (uz * ux * lcos) - (uy * sin), (uz * uy * lcos) + (ux * sin), cos + (uz * uz * lcos)
+            cos + (ux * ux * lcos),          (ux * uy * lcos) - (uz * sin),   (ux * uz * lcos) + (uy * sin),
+            (uy * ux * lcos) + (uz * sin),   cos + (uy * uy * lcos),          (uy * uz * lcos) - (ux * sin),
+            (uz * ux * lcos) - (uy * sin),   (uz * uy * lcos) + (ux * sin),   cos + (uz * uz * lcos)
             });
 
 
@@ -343,6 +343,11 @@ namespace Kirali.MathR
                 }
             }
             return resultant;
+        }
+
+        internal Vector2 ToVector2()
+        {
+            return new Vector2(content[0, 0], content[0, 1]);
         }
         #endregion SetAndGet
 

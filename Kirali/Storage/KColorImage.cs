@@ -64,6 +64,7 @@ namespace Kirali.Storage
             doDraw[x, y] = true;
         }
 
+        public bool GetDoDraw(int x, int y) { return doDraw[x, y]; }
         public KColorImage GetBloomMapped(double scale, double factor)
         {
             KColorImage bloomMapImage = new KColorImage(m_width, m_height);

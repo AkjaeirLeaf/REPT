@@ -24,6 +24,8 @@ namespace Kirali.Celestials
     }
     public class CelestialObject
     {
+        public string version = "v22x09m09_v1";
+        
         public bool DataDeveloped = false; // F00F
         public string objectID = ""; //F01F
 
@@ -50,6 +52,7 @@ namespace Kirali.Celestials
         public double[] occurenceExtractable; //F16F
         public double avDensity; //F17F
         public double Temperature; //F18F
+        public double Luminance; //F25F
         public double accFactor; //F19F
         public double sGravity; //F1AF
         public double obliquitySOI = 0; //F1BF
@@ -67,5 +70,43 @@ namespace Kirali.Celestials
         public Vector3 SystemCenterPosition; //F22F
 
         public int StellarGeneration = 0; //F23F
+
+
+        //Constructors
+
+        public CelestialObject(string celestial_ID, string primaryDisplayName, CobjectTypes celestialType)
+        {
+            CelestialID = celestial_ID;
+            CelestialName = new string[] { primaryDisplayName };
+            objectType = celestialType;
+        }
+
+        public void RunAll_Update(RGalaxy galaxy, StarSystemData systemData)
+        {
+            int fileOrderID = systemData.fileOrderId;
+            SystemPointStorage SPS = galaxy.system_points[fileOrderID];
+            FilePath = galaxy.StoragePath + "\\systems\\[" + RGalaxy.SelectivePlacementInteger(fileOrderID, 9) + "] " + systemData.systemName + "\\" + CelestialID;
+            //NOTE FILEPATH DOES NOT INCLUDE EXTENSION OF CELESTIAL!!!
+            StellarGeneration = systemData.Generation;
+            SystemCenterPosition = new Vector3(galaxy.system_points[fileOrderID].X,
+                galaxy.system_points[fileOrderID].Y,
+                galaxy.system_points[fileOrderID].Z);
+        }
+
+
+
+        //Data Update Methods
+
+        public int UpdateLuminance()
+        {
+            if (Temperature > 0 && Radius > 0)
+            {
+                double L = Kirali.MathR.Physics.lumTotal(Temperature, Radius);
+                Luminance = L;
+            }
+            return 1;
+        }
+
+
     }
 }

@@ -28,9 +28,645 @@ namespace REPT
         public MainWindow()
         {
             InitializeComponent();
+            //Test25();
+            //Test26();
+            Test25();
+        }
 
+        public void Test27()
+        {
+            Triangle3D t = new Triangle3D();
+            t.Transform(new Vector3(0, 0, 1));
+            Vector3 p = new Vector3(0, 0, 10);
+            Vector3 inc = new Vector3(0, 0, -1);
+
+            bool hits = t.RayDoesIntersect(p, inc);
+
+            Console.WriteLine(hits);
+        }
+
+        //bake population survey voxel densities of galaxy.
+        public void Test26()
+        {
+            double size = 1.0; //EXAMETERS
+            Vector3 pos = Vector3.Zero;
+            RGalaxy kjianoaa = RGalaxy.FromFolder("D:\\Desktop Control\\VisualStudio\\V C# Net Projects\\REGS\\REGS\\bin\\Debug\\kjianoaa",
+                true, true);
+
+            SystemSearchParameter SSP = new SystemSearchParameter();
+            SSP.ChunkSize = size;
+            SSP.X_chunk = pos.X;
+            SSP.Y_chunk = pos.Y;
+            SSP.Z_chunk = pos.Z;
+
+            kjianoaa.LoadSystemPoints(SSP);
+            double temp = kjianoaa.AvgSystemPrimaryTemp();
+
+
+            int[] classCounts = new int[100];
+            for (int st = 0; st < kjianoaa.system_points.Length; st++)
+            {
+                classCounts[kjianoaa.system_points[st].spectralClass]++;
+            }
+            string sve = "";
+            for (int pl = 0; pl < classCounts.Length; pl++)
+            {
+                sve += classCounts[pl] + "\n";
+            }
+
+            File.WriteAllText("classCounter", sve);
+
+            Console.WriteLine("Ready,,,,aiuegkhljffff.");
+
+        }
+
+        public void Test25()
+        {
+            DateTime dtStart = DateTime.Now;
+            int w = 5;
+            int h = 5;
+            Vector3[] ps = new Vector3[w * h];
+            for(int k = 0; k < h; k++)
+            {
+                for (int l = 0; l < w; l++)
+                {
+                    ps[k * w + l] = new Vector3(l, k + 7, Kirali.Framework.Random.Double(0, 2));
+                }
+            }
+            Triangle3DMesh mesh = Triangle3DMesh.GridAutoMesh(w, h, ps);
             
-            Test15();
+            //tri.Scale(1);
+            //tri.Transform(new Vector3(0, 15, 0));
+            //mesh.AddTriangle(tri);
+
+            //Vector3 camerapos = new Vector3(0, -12, 7.0);
+
+            Vector3 camerapos = new Vector3(0, -12, 7);
+            Vector3 camerarot = new Vector3(0, 0, 0);
+
+            Vector3 LAMP_POS = new Vector3(0, 15.0, 5); double LAMP_LUM = 3;
+            KColor4 LAMP_COLOR = KColor4.WHITE; //new KColor4(6.4, 2.1, 4.0);
+            int dres = 8;
+            Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
+
+
+            MainCamera.RotateThet(-Math.PI / 2.2);
+            //WMainCamera.RotatePhi(Math.PI / 6);
+            //MainCamera.RotateR(Math.PI * (1 + 0.15));
+
+            KColorImage renderImageRaw = new KColorImage(MainCamera.Width, MainCamera.Height);
+            renderImageRaw.Fill(KColor4.BLACK);
+            Bitmap vmp = new Bitmap(MainCamera.Width, MainCamera.Height);
+            int samplesMax = 2;
+
+
+            //no need for angle limiter because the plane hit function has it built in
+
+            for (int y = 0; y < vmp.Height; y++)
+            {
+                for (int x = 0; x < vmp.Width; x++)
+                {
+                    int sn = samplesMax;
+                    KColor4[] samples = new KColor4[sn];
+                    bool dosetPoint = true;
+
+                    for (int s = 0; s < sn; s++)
+                    {
+                        double bright = 0;
+                        Vector3 currentCameraVector = MainCamera.GetRayCast(x, y);
+
+                        //double betlamp = Vector3.Between(LAMP_POS - camerapos, currentCameraVector);
+                        //double bet = Vector3.Between(sphere.position - camerapos, currentCameraVector);
+
+                        Vector3 hitClose;
+                        if (mesh.DoesCollide(MainCamera.position, currentCameraVector))
+                        {
+                            samples[s] = KColor4.WHITE;
+                            Triangle3D t = mesh.FirstHitTriangle(camerapos, currentCameraVector, out hitClose, out _);
+                        }
+                        /*
+                        //Triangle3D t = mesh.FirstHitTriangle(camerapos, currentCameraVector, out hitClose, out _);
+                        if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                        {
+                            //bool doesHit = mesh.RayDoesIntersect(camerapos, currentCameraVector);
+                            //bright = LAMP_LUM / Math.Pow((LAMP_POS - hitClose).Length(), 2) * Math.Abs(Vector3.Dot((LAMP_POS - hitClose).Normalize(), plane.Normal));
+
+                            samples[s] = KColor4.WHITE;
+                            //samples[s] = plane.GetDiffuseColor(hitClose, "colorwheel") * ((new KColor4(1, 1, 1) * 0.4) + (LAMP_COLOR * bright));
+                        }
+                        else
+                        {
+                            dosetPoint = false;
+                            //samples[s] = new KColor4(0.0, 0.0, 0.0, 1.0);
+                        }
+                        */
+                    }
+                    if (dosetPoint)
+                    {
+                        renderImageRaw.SetPoint(x, y, KColor4.Average(samples));
+                    }
+                }
+            }
+            //KColorImage bloomIm = renderImageRaw.GetBloomMapped(15, 0.0005);
+
+            vmp = renderImageRaw.ToSystemBitmap();
+
+            TimeSpan renderTimeElapse = DateTime.Now - dtStart;
+
+            vmp.Save("fastrenders\\rendertriangles_" + samplesMax + "iter_" + Math.Round(renderTimeElapse.TotalMilliseconds) / 1000.0 + "sec.png");
+            DisplayRenderMain.Image = vmp;
+        }
+
+        //Load Galaxy and also edit/add celestial object, I'll add the MUSHROOM object
+        public void Test24()
+        {
+            RGalaxy kjianoaa = RGalaxy.FromFolder("D:\\Desktop Control\\VisualStudio\\V C# Net Projects\\REGS\\REGS\\bin\\Debug\\kjianoaa",
+                true, true);
+            //BE CAREFUL!
+            //While loading without starpoints is fast, and allows one to load and edit star systems,
+            //you can ONLY EDIT RELEASED SYSTEMS with limited functionality without causing
+            //inconsistencies. ITS ALWAYS BETTER TO FULLY LOAD STARPOINTS unless doing a silly
+            //little debug test like this:
+
+            //OKOK nevermind I do need to because CelestialObject.RunAll_Update requires starpoints to be loaded.
+
+            StarSystemData ssystem;
+            REGS_STD_ERROR err = (REGS_STD_ERROR)kjianoaa.LoadReleasedSystem("Mushroom", out ssystem);
+            //THIS ^^^ is an EXACT MATCH.
+            //Check if success:
+            if(err == REGS_STD_ERROR.FOUND_RELEASED_SYSTEM)
+            {
+                Console.WriteLine("Success!!! System Found!");
+                CelestialObject MushroomStar = new CelestialObject("Mushroom", "Mushroom", CobjectTypes.star);
+                MushroomStar.RunAll_Update(kjianoaa, ssystem);
+                //Add more shit
+
+
+                //SAVE
+                ssystem.AddCelestialObject(MushroomStar);
+                kjianoaa.SaveSystemData(ssystem);
+            }
+        }
+
+        //Star Rendering Test.
+        public void Test23()
+        {
+            double Temp     = 14000;
+            double Size     = 11.27 * 10E9;
+            double Distance = 158 * 10E17;
+            KColor4 approx = KColor4.visibleBlackBodyApprox(Temp);
+
+            Bitmap disp = new Bitmap(1920 / 4, 1080 / 4);
+            double f = (Size * Size) / (Distance * Distance);
+            KColor4 safe = approx.SafeDeExpose(f); Console.WriteLine(approx.IntensityRGB()); Console.WriteLine(f);
+            using (Graphics gh = Graphics.FromImage(disp))
+            {
+                //gh.DrawRectangle(new Pen(Color.Black), new Rectangle(new Point(0, 0), disp.Size));
+                gh.FillRectangle(new SolidBrush(safe.ToSystemColor()), new Rectangle(new Point(0, 0), disp.Size));
+            }
+            //disp.SetPixel(disp.Width / 2, disp.Height / 2, safe.ToSystemColor());
+
+            DisplayRenderMain.Image = disp;
+            disp.Save("startest.png");
+        }
+
+        //BBdy test
+        public void Test22()
+        {
+            double wlmin = 1;
+            double wlmax = 20000;
+            Bitmap disp = new Bitmap(1920 / 1, 1080 / 1);
+            using (Graphics gh = Graphics.FromImage(disp))
+            {
+                //SPECT DRAW
+                double T = wlmin;
+                double wlch = (wlmax - wlmin) / disp.Width;
+                Pen ps;
+
+                //SCATTER FUNCTION DRAW
+                Point lastPos0R = new Point(0, 0);
+                Point lastPos0G = new Point(0, 0);
+                Point lastPos0B = new Point(0, 0);
+                Point lastPos1R = new Point(0, 0);
+                Point lastPos1G = new Point(0, 0);
+                Point lastPos1B = new Point(0, 0);
+                double I_Min = 0;
+                double I_Max = 10E17;
+                double I_range = I_Max - I_Min;
+                Pen r_pen = new Pen(Color.Red);
+                Pen g_pen = new Pen(Color.Green);
+                Pen b_pen = new Pen(Color.Blue);
+
+
+                //Dat DRW
+                SolidBrush datapointbr = new SolidBrush(Color.Black);
+
+
+
+                for (int x = 0; x < disp.Width; x++)
+                {
+                    //spectrum draw
+                    T = wlmin + x * wlch;
+                    KColor4 approx = KColor4.visibleBlackBodyApprox(T);
+                    KColor4 safe = approx.SafeDeExpose(3 / 10E17);
+                    ps = new Pen(safe.ToSystemColor());
+                    gh.DrawLine(ps, new Point(x, 0), new Point(x, disp.Height));
+
+                    if (true)
+                    {
+                        double I1_Red   = approx.R;
+                        double I1_Green = approx.G;
+                        double I1_Blue  = approx.B;
+
+
+                        Point newPos1R = new Point(x, (int)(disp.Height * (1.0 - (I1_Red - I_Min) / I_range)));
+                        Point newPos1G = new Point(x, (int)(disp.Height * (1.0 - (I1_Green - I_Min) / I_range)));
+                        Point newPos1B = new Point(x, (int)(disp.Height * (1.0 - (I1_Blue - I_Min) / I_range)));
+
+                        if (x == disp.Width / 2)
+                        {
+                            Console.WriteLine(I1_Red);
+                            Console.WriteLine(I1_Green);
+                            Console.WriteLine(I1_Blue);
+                        }
+
+                        try
+                        {
+                            gh.DrawLine(r_pen, lastPos1R, newPos1R);
+                            gh.DrawLine(g_pen, lastPos1G, newPos1G);
+                            gh.DrawLine(b_pen, lastPos1B, newPos1B);
+                        }
+                        catch { }
+                        lastPos1R = newPos1R;
+                        lastPos1G = newPos1G;
+                        lastPos1B = newPos1B;
+                    }
+                }
+
+
+            }
+
+
+            DisplayRenderMain.Image = disp;
+            disp.Save("testrenderspec22.png");
+        }
+
+        //BBdy test
+        public void Test21()
+        {
+            double wlmin = 200;
+            double wlmax = 1200;
+            Bitmap disp = new Bitmap(1920 / 1, 1080 / 1);
+            using (Graphics gh = Graphics.FromImage(disp))
+            {
+                //SPECT DRAW
+                double wl = wlmin;
+                double wlch = (wlmax - wlmin) / disp.Width;
+                Pen ps;
+
+                //SCATTER FUNCTION DRAW
+                Point lastPos0R = new Point(0, 0);
+                Point lastPos1R = new Point(0, 0);
+                
+                double I_Min = 0;
+                double I_Max = 10;
+                double I_range = I_Max - I_Min;
+                Pen r_pen = new Pen(Color.Red);
+                Pen g_pen = new Pen(Color.Green);
+                Pen b_pen = new Pen(Color.Blue);
+
+
+                //Dat DRW
+                SolidBrush datapointbr = new SolidBrush(Color.Black);
+
+
+
+                for (int x = 0; x < disp.Width; x++)
+                {
+                    //spectrum draw
+                    wl = wlmin + x * wlch;
+                    ps = new Pen(KColor4.fullspecWavelengthRGB(wl / 1000).ToSystemColor());
+                    //gh.DrawLine(ps, new Point(x, 0), new Point(x, disp.Height));
+
+                    if (true)
+                    {
+                        double I1_Bv = Kirali.Light.KColor4.Bv_L(wl, 6000) / 10E13;
+
+
+                        Point newPos1R = new Point(x, (int)(disp.Height * (1.0 - (I1_Bv - I_Min) / I_range)));
+
+                        if (x == disp.Width / 2)
+                        {
+                            Console.WriteLine(I1_Bv);
+                        }
+
+                        try
+                        {
+                            gh.DrawLine(r_pen, lastPos1R, newPos1R);
+                        }
+                        catch { }
+                        lastPos1R = newPos1R;
+                    }
+                }
+
+
+            }
+
+
+            DisplayRenderMain.Image = disp;
+            disp.Save("testrenderspec22.png");
+        }
+
+        //BBdy test
+        public void Test20()
+        {
+            double wlmin = 200;
+            double wlmax = 1200;
+            Bitmap disp = new Bitmap(1920 / 1, 1080 / 1);
+            using (Graphics gh = Graphics.FromImage(disp))
+            {
+                //SPECT DRAW
+                double wl = wlmin;
+                double wlch = (wlmax - wlmin) / disp.Width;
+                Pen ps;
+
+                //SCATTER FUNCTION DRAW
+                Point lastPos0R = new Point(0, 0);
+                Point lastPos0G = new Point(0, 0);
+                Point lastPos0B = new Point(0, 0);
+                Point lastPos1R = new Point(0, 0);
+                Point lastPos1G = new Point(0, 0);
+                Point lastPos1B = new Point(0, 0);
+                double I_Min = 0;
+                double I_Max = 10E14;
+                double I_range = I_Max - I_Min;
+                Pen r_pen = new Pen(Color.Red);
+                Pen g_pen = new Pen(Color.Green);
+                Pen b_pen = new Pen(Color.Blue);
+
+
+                //Dat DRW
+                SolidBrush datapointbr = new SolidBrush(Color.Black);
+
+
+
+                for (int x = 0; x < disp.Width; x++)
+                {
+                    //spectrum draw
+                    wl = wlmin + x * wlch;
+                    ps = new Pen(KColor4.fullspecWavelengthRGB(wl/1000).ToSystemColor());
+                    //gh.DrawLine(ps, new Point(x, 0), new Point(x, disp.Height));
+
+                    if (true)
+                    {
+                        double I1_Red   = Kirali.Light.KColor4.R_FullS(wl, 6000);
+                        double I1_Green = Kirali.Light.KColor4.G_FullS(wl, 6000);
+                        double I1_Blue  = Kirali.Light.KColor4.B_FullS(wl, 6000);
+
+
+                        Point newPos1R = new Point(x, (int)(disp.Height * (1.0 - (I1_Red   - I_Min) / I_range)));
+                        Point newPos1G = new Point(x, (int)(disp.Height * (1.0 - (I1_Green - I_Min) / I_range)));
+                        Point newPos1B = new Point(x, (int)(disp.Height * (1.0 - (I1_Blue  - I_Min) / I_range)));
+
+                        if(x == disp.Width / 2)
+                        {
+                            Console.WriteLine(I1_Red);
+                            Console.WriteLine(I1_Green);
+                            Console.WriteLine(I1_Blue);
+                        }
+
+                        try
+                        {
+                            gh.DrawLine(r_pen, lastPos1R, newPos1R);
+                            gh.DrawLine(g_pen, lastPos1G, newPos1G);
+                            gh.DrawLine(b_pen, lastPos1B, newPos1B);
+                        }
+                        catch { }
+                        lastPos1R = newPos1R;
+                        lastPos1G = newPos1G;
+                        lastPos1B = newPos1B;
+                    }
+                }
+
+                
+            }
+
+
+            DisplayRenderMain.Image = disp;
+            disp.Save("testrenderspec22.png");
+        }
+
+        //plane render test, preparation for terrain implementation
+        public void Test19()
+        {
+            DateTime dtStart = DateTime.Now;
+            Triangle3D plane = new Triangle3D();
+            plane.Scale(5);
+            plane.Transform(new Vector3(0, 15, 0));
+
+            Vector3 camerapos = new Vector3(0, -12, 7);
+            //Vector3 camerapos = new Vector3(0, -12, 7.0);
+
+            Vector3 camerarot = new Vector3(0, 0, 0);
+
+            Vector3 LAMP_POS = new Vector3(0, 15.0, 5); double LAMP_LUM = 3;
+            KColor4 LAMP_COLOR = KColor4.WHITE; //new KColor4(6.4, 2.1, 4.0);
+            int dres = 2;
+            Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
+
+
+            MainCamera.RotateThet(-Math.PI / 2.2);
+            //WMainCamera.RotatePhi(Math.PI / 6);
+            //MainCamera.RotateR(Math.PI * (1 + 0.15));
+
+            KColorImage renderImageRaw = new KColorImage(MainCamera.Width, MainCamera.Height);
+            renderImageRaw.Fill(KColor4.BLACK);
+            Bitmap vmp = new Bitmap(MainCamera.Width, MainCamera.Height);
+            int samplesMax = 2;
+
+
+            //no need for angle limiter because the plane hit function has it built in
+
+            for (int y = 0; y < vmp.Height; y++)
+            {
+                for (int x = 0; x < vmp.Width; x++)
+                {
+                    int sn = samplesMax;
+                    KColor4[] samples = new KColor4[sn];
+                    bool dosetPoint = true;
+
+                    for (int s = 0; s < sn; s++)
+                    {
+                        double bright = 0;
+                        Vector3 currentCameraVector = MainCamera.GetRayCast(x, y);
+
+                        //double betlamp = Vector3.Between(LAMP_POS - camerapos, currentCameraVector);
+                        //double bet = Vector3.Between(sphere.position - camerapos, currentCameraVector);
+
+                        Vector3 hitClose = plane.Hit(camerapos, currentCameraVector);
+                        if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                        {
+                            bright = LAMP_LUM / Math.Pow((LAMP_POS - hitClose).Length(), 2) * Math.Abs(Vector3.Dot((LAMP_POS - hitClose).Normalize(), plane.Normal));
+
+                            //samples[s] = sphere.SHADER.Diffuse(sphere.GetNewMap(hitClose)) * bright;
+                            samples[s] = plane.GetDiffuseColor(hitClose, "colorwheel") * ((new KColor4(1, 1, 1) * 0.4) + (LAMP_COLOR * bright));
+                        }
+                        else
+                        {
+                            dosetPoint = false;
+                            //samples[s] = new KColor4(0.0, 0.0, 0.0, 1.0);
+                        }
+                    }
+                    if (dosetPoint)
+                    {
+                        renderImageRaw.SetPoint(x, y, KColor4.Average(samples));
+                    }
+                }
+            }
+            //KColorImage bloomIm = renderImageRaw.GetBloomMapped(15, 0.0005);
+
+            vmp = renderImageRaw.ToSystemBitmap();
+
+            TimeSpan renderTimeElapse = DateTime.Now - dtStart;
+
+            vmp.Save("fastrenders\\rendertriangles_" + samplesMax + "iter_" + Math.Round(renderTimeElapse.TotalMilliseconds) / 1000.0 + "sec.png");
+            DisplayRenderMain.Image = vmp;
+        }
+
+        //plane render test, preparation for terrain implementation
+        public void Test18()
+        {
+            DateTime dtStart = DateTime.Now;
+            Plane plane = new Plane(0);
+
+            Vector3 camerapos = new Vector3(0, -12, 7.0);
+
+            Vector3 camerarot = new Vector3(0, 0, 0);
+
+            Vector3 LAMP_POS = new Vector3(0, 15.0, 5); double LAMP_LUM = 10;
+            KColor4 LAMP_COLOR = new KColor4(6.4, 2.1, 4.0);
+            int dres = 4;
+            Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
+
+
+            MainCamera.RotateThet(-Math.PI / 2.2);
+            //WMainCamera.RotatePhi(Math.PI / 6);
+            //MainCamera.RotateR(Math.PI * (1 + 0.15));
+
+            KColorImage renderImageRaw = new KColorImage(MainCamera.Width, MainCamera.Height);
+            renderImageRaw.Fill(KColor4.BLACK);
+            Bitmap vmp = new Bitmap(MainCamera.Width, MainCamera.Height);
+            int samplesMax = 1;
+
+
+            //no need for angle limiter because the plane hit function has it built in
+
+            for (int y = 0; y < vmp.Height; y++)
+            {
+                for (int x = 0; x < vmp.Width; x++)
+                {
+                    int sn = samplesMax;
+                    KColor4[] samples = new KColor4[sn];
+                    bool dosetPoint = true;
+
+                    for (int s = 0; s < sn; s++)
+                    {
+                        double bright = 0;
+                        Vector3 currentCameraVector = MainCamera.GetRayCast(x, y);
+
+                        //double betlamp = Vector3.Between(LAMP_POS - camerapos, currentCameraVector);
+                        //double bet = Vector3.Between(sphere.position - camerapos, currentCameraVector);
+
+                        Vector3 hitClose = plane.Hit(camerapos, currentCameraVector, 0.005);
+                        if (hitClose.Form != Vector3.VectorForm.INFINITY && hitClose.Form == Vector3.VectorForm.POSITION)
+                        {
+                            bright = LAMP_LUM / Math.Pow((LAMP_POS - hitClose).Length(), 2) * Math.Abs(Vector3.Dot((LAMP_POS - hitClose).Normalize(), plane.Grad(hitClose)));
+
+                            //samples[s] = sphere.SHADER.Diffuse(sphere.GetNewMap(hitClose)) * bright;
+                            samples[s] = plane.GetDiffuseColor(hitClose, "white") * ((new KColor4(1, 1, 1) * 0.4) + (LAMP_COLOR * bright));
+                        }
+                        else
+                        {
+                            dosetPoint = false;
+                            //samples[s] = new KColor4(0.0, 0.0, 0.0, 1.0);
+                        }
+                    }
+                    if (dosetPoint)
+                    {
+                        renderImageRaw.SetPoint(x, y, KColor4.Average(samples));
+                    }
+                }
+            }
+            //KColorImage bloomIm = renderImageRaw.GetBloomMapped(15, 0.0005);
+
+            vmp = renderImageRaw.ToSystemBitmap();
+
+            TimeSpan renderTimeElapse = DateTime.Now - dtStart;
+
+            vmp.Save("fastrenders\\renderplane_" + samplesMax + "iter_" + Math.Round(renderTimeElapse.TotalMilliseconds) / 1000.0 + "sec.png");
+            DisplayRenderMain.Image = vmp;
+        }
+
+        //do save optical storage data
+        public void Test17()
+        {
+            OpticalStorage osf_R_OPL;
+
+            double R_planet = 6371000; //meters
+
+            int angledivs = 100;
+            double dtheta = Math.PI / 2 / (double)angledivs;
+            double dwavelength = 0.05;
+            double wlmin = 0.3; double wlmax = 0.85; //visible only
+            //double wlmin = 0.2; double wlmax = 5.2; //ira & irb, visible, and UV.
+
+            int wlct = (int)((wlmax - wlmin) / dwavelength);
+
+            //begin WRITE.
+            int wlindex = 0;
+
+            int[] wvlts = new int[wlct];
+            //double[] 
+            for (double wl = wlmin; wl < wlmax - dwavelength; wl += dwavelength)
+            {
+                int wlNM = (int)(1000 * wl); wvlts[wlindex] = wlNM;
+                wlindex++;
+            }
+            wlindex = 0;
+
+            int dist_upper = 1000;
+            int dist_block_ct = 100;
+            osf_R_OPL = new OpticalStorage(wvlts, OpticalAngleRangeMethod.ANGLES_HALF1PI, angledivs, dist_block_ct, dist_upper);
+
+            for (double wl = wlmin; wl < wlmax - dwavelength; wl += dwavelength)
+            {
+                double[] opl_R_dat = new double[angledivs];
+                int angint = 0;
+                for (double theta = 0; theta < Math.PI / 2; theta += dtheta)
+                {
+                    //get view angle: 
+                    double rayang = Math.PI - theta; //orientation of integration is Z = direction of SUN
+                    double a = Atmospherics.std_OpticalPathLength(10.0 + R_planet, rayang, wl, 2, 70000, R_planet);
+                    try { opl_R_dat[angint] = a; } catch { }
+                    angint++;
+                }
+                osf_R_OPL.Add_R_OPPATHDEPTH(wlindex, opl_R_dat);
+
+                double[] opl_R_Height = new double[dist_block_ct];
+                int distint = 0;
+                for (int H_travel = 0; H_travel < dist_upper; H_travel += dist_upper / dist_block_ct)
+                {
+                    double rayang = Math.PI / 2; //orientation of integration is Z = direction of SUN
+                    double a = Atmospherics.std_OpticalPathLength(2.0 + 1000 * H_travel + R_planet, rayang, wl, 2, 70000, R_planet);
+                    try { opl_R_Height[distint] = a; } catch { }
+                    distint++;
+                }
+                osf_R_OPL.Add_R_DCLOSEST(wlindex, opl_R_Height);
+
+                wlindex++;
+            }
+
+            osf_R_OPL.SerializeWriteObject("ose_space_AhitDclose.optstor");
         }
 
         //test using a polynomial interpolation method
@@ -363,9 +999,9 @@ namespace REPT
 
             Vector3 vpos = Vector3.Zero;
             KColorImage kci = new KColorImage(2048, 1024);
-            for(int spc = 0; spc < kjianoaa.starpoints.Length; spc++)
+            for(int spc = 0; spc < kjianoaa.system_points.Length; spc++)
             {
-                StarData sp = kjianoaa.starpoints[spc];
+                SystemPointStorage sp = kjianoaa.system_points[spc];
                 double xr = sp.X - vpos.X;
                 double yr = sp.Y - vpos.Y;
                 double zr = sp.Z - vpos.Z;
@@ -834,8 +1470,8 @@ namespace REPT
             //Vector3 camerarot = new Vector3(Math.PI / 3, -1 * Math.PI / 4, 0);
 
             //Vector3 LAMP = new Vector3(-2.1, -3.2, -1.3).Normalize();
-            Vector3 LAMP_POS = new Vector3(-5 * p_radius, -5 * p_radius, 1); double LAMP_LUM = 6455548880.0;
-            int dres = 4;
+            Vector3 LAMP_POS = new Vector3(-5 * p_radius, -5 * p_radius, 1); double LAMP_LUM = 0.5 * 6455548880.0;
+            int dres = 2;
             Camera MainCamera = new Camera(camerapos, camerarot, 1920 / dres, 1080 / dres);
 
 
@@ -846,7 +1482,7 @@ namespace REPT
             KColorImage renderImageRaw = new KColorImage(MainCamera.Width, MainCamera.Height);
             renderImageRaw.Fill(KColor4.BLACK);
             Bitmap vmp = new Bitmap(MainCamera.Width, MainCamera.Height);
-            int samplesMax = 1;
+            int samplesMax = 4;
             double dist = camerapos.Length();
 
             //Shader!
@@ -863,7 +1499,7 @@ namespace REPT
             for (int frame = 0; frame < 1; frame++)
             {
 
-                //sphere.RotateR(frame * Math.PI / 20.0);
+                sphere.RotateR(frame * Math.PI / 20.0);
 
                 for (int y = 0; y < vmp.Height; y++)
                 {

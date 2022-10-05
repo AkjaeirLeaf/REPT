@@ -98,7 +98,12 @@ namespace Kirali.MathR
         /// <summary>
         /// <tooltip>Create a new empty 3D Vector with space for x, y, and z coodrinate values.</tooltip>
         /// </summary>
-        public Vector3() { }
+        public Vector3() 
+        {
+            X = 0;
+            Y = 0;
+            Z = 0;
+        }
 
         /// <summary>
         /// <tooltip>Create a new 3D Vector with space for x, y, and z coodrinate values.</tooltip>
@@ -155,6 +160,15 @@ namespace Kirali.MathR
             return this;
         }
 
+        public Vector3 SafeNormalize()
+        {
+            double m = 1.0 / Math.Sqrt(X * X + Y * Y + Z * Z);
+            double x = X * m;
+            double y = Y * m;
+            double z = Z * m;
+            return new Vector3(x, y, z);
+        }
+
         /// <summary>
         /// <tooltip>Returns the length of the Vector.</tooltip>
         /// </summary>
@@ -191,6 +205,64 @@ namespace Kirali.MathR
         public static double Distance(Vector3 p1, Vector3 p2)
         {
             return (p2 - p1).Length();
+        }
+
+        public static Vector3 Average(Vector3 v1, Vector3 v2)
+        {
+            return new Vector3((v1.X + v2.X) / 2, (v1.Y + v2.Y) / 2, (v1.Z + v2.Z) / 2);
+        }
+
+        public static Vector3 Average(Vector3[] array)
+        {
+            int total = 0;
+
+            double xsum = 0;
+            double ysum = 0;
+            double zsum = 0;
+            for(int inc = 0; inc < array.Length; inc++)
+            {
+                if(array[inc].Form != VectorForm.INFINITY)
+                {
+                    xsum += array[inc].X;
+                    ysum += array[inc].Y;
+                    zsum += array[inc].Z;
+                    total++;
+                }
+            }
+            if(total > 0)
+            {
+                xsum /= total;
+                ysum /= total;
+                zsum /= total;
+
+                return new Vector3(xsum, ysum, zsum);
+            }
+            else
+            {
+                return INFINITY;
+            }
+        }
+
+        public static Vector3 INFINITY { get { return new Vector3(0.0, 0.0, 0.0, VectorForm.INFINITY); } }
+
+        public static Vector3[] BumpPlane(Vector3 refVec, Vector3 incoming, Vector3 middle, double delta)
+        {
+            Vector3[] bpoints = new Vector3[6];
+            Vector3 xaxis;
+            Vector3 yaxis;
+
+            xaxis = Cross(incoming, refVec); xaxis.Normalize();
+            yaxis = Cross(refVec, xaxis); yaxis.Normalize();
+
+            bpoints[0] = middle - (xaxis * (delta / 2)) + (yaxis * (delta / 2));
+            bpoints[1] = middle + (xaxis * (delta / 2)) + (yaxis * (delta / 2));
+            bpoints[2] = middle + (xaxis * (delta / 2)) - (yaxis * (delta / 2));
+            bpoints[3] = middle - (xaxis * (delta / 2)) - (yaxis * (delta / 2));
+
+            bpoints[4] = xaxis;
+            bpoints[5] = yaxis;
+
+            return bpoints;
         }
 
         /// <summary>
@@ -442,6 +514,11 @@ namespace Kirali.MathR
         public static Vector3 operator -(Vector3 v1, Vector3 v2)
         {
             return new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+        }
+
+        public static Vector3 operator /(double d, Vector3 v1)
+        {
+            return new Vector3(d / v1.X, d / v1.Y, d / v1.Z);
         }
 
         public static bool IsEqual(Vector3 v1, Vector3 v2)
