@@ -15,15 +15,39 @@ namespace REPT.Copied_Storage
         private int width, height;
         private REPT.Copied_Storage.CubeMapImageBounds bounds;
 
-        private int method = -1;
+        private TextureDataProvider provider = TextureDataProvider.NONE_UNKNOWN;
         private Texture2D texture_;
-        public Texture2D GL_Texture { get { return texture_; } }
+        private int texture_renderworld;
+        private int texture_position;
+        public Texture2D GL_Texture
+        {
+            get 
+            {
+                switch (provider)
+                {
+                    case TextureDataProvider.NONE_UNKNOWN:
+                        return REPTsysWindow.ErrorTexture;
+                    case TextureDataProvider.INTERNAL_CUBEMAP:
+                        return texture_;
+                    case TextureDataProvider.RENDERWORLD:
+                        Texture2D fromWorld;
+                        if(REPTsysWindow.TryGetTexture(texture_renderworld, texture_position, out fromWorld))
+                        {
+                            return fromWorld;
+                        }
+                        return REPTsysWindow.ErrorTexture;
+                    default:
+                        return REPTsysWindow.ErrorTexture;
+
+                }
+            } 
+        }
         private Bitmap imagebase;
 
         public static REPT_CubeMap FromFile(string filepath, REPT.Copied_Storage.CubeMapImageBounds imageBounds)
         {
             REPT_CubeMap cmi = new REPT_CubeMap();
-            cmi.method = 1;
+            cmi.provider = TextureDataProvider.NONE_UNKNOWN;
             cmi.imagebase  =  new Bitmap(filepath);
             cmi.bounds     =  imageBounds;
             cmi.width      =  cmi.imagebase.Width;
@@ -36,12 +60,47 @@ namespace REPT.Copied_Storage
         {
             REPT_CubeMap cmi = new REPT_CubeMap();
             cmi.texture_ = TextureHandler.LoadTexture(resourcePath, true);
-            cmi.method = 0;
+            cmi.provider = TextureDataProvider.INTERNAL_CUBEMAP;
             //cmi.imagebase = cmi.texture_;
             cmi.bounds = imageBounds;
             cmi.width  = cmi.texture_.Width;
             cmi.height = cmi.texture_.Height;
 
+            return cmi;
+        }
+
+        public static REPT_CubeMap FromTexture2D(Texture2D texture, CubeMapImageBounds imageBounds)
+        {
+            REPT_CubeMap cmi = new REPT_CubeMap();
+            cmi.texture_ = texture;
+            cmi.provider = TextureDataProvider.INTERNAL_CUBEMAP;
+            cmi.bounds = imageBounds;
+            cmi.width = texture.Width;
+            cmi.height = texture.Height;
+            cmi.bounds = imageBounds;
+            return cmi;
+        }
+
+        public static REPT_CubeMap FromRenderWorld(int renderworldID, int position, CubeMapImageBounds imageBounds)
+        {
+            REPT_CubeMap cmi = new REPT_CubeMap();
+            Texture2D tex;
+            if(REPTsysWindow.TryGetTexture(renderworldID, position, out tex))
+            {
+                cmi.texture_renderworld = renderworldID;
+                cmi.texture_position = position;
+            }
+            else
+            {   //if not found set world and position to the default error image 0/0
+                cmi.texture_renderworld = 0;
+                cmi.texture_position = 0;
+            }
+
+            cmi.provider = TextureDataProvider.RENDERWORLD;
+            cmi.bounds = imageBounds;
+            cmi.width = tex.Width;
+            cmi.height = tex.Height;
+            cmi.bounds = imageBounds;
             return cmi;
         }
 
@@ -151,7 +210,7 @@ namespace REPT.Copied_Storage
             }
         }
 
-        public TextureTile GetAbsoluteTileBounds(int address)
+        public TextureTile GetAbsoluteTileBounds_OLD(int address)
         {
             char[] arr = address.ToString().ToCharArray();
             int face;
@@ -168,6 +227,55 @@ namespace REPT.Copied_Storage
             }
             return start;
         }
+
+        public TextureTile GetAbsoluteTileBounds(int address)
+        {
+            int[] sliced = new int[(int)Math.Ceiling(Math.Log10(address))];
+            double remaining = address;
+
+            for (int ix = 0; ix < sliced.Length; ix++)
+            {
+                sliced[sliced.Length - 1 - ix] = (int)(remaining % 10);
+                remaining = Math.Floor(remaining / 10);
+            }
+
+            TextureTile start = GetTileBounds(sliced[0], false);
+            TextureTile next;
+            for (int v = 0; v < sliced.Length - 1; v++)
+            {
+                next = TextureTile.SubtileOct(start, sliced[v + 1]);
+                start = next;
+            }
+            return start;
+        }
+
+        public static CubeMapImageBounds DefaultCubeBounds
+        {
+            get
+            {
+                REPT.Copied_Storage.CubeMapImageBounds cmib = new REPT.Copied_Storage.CubeMapImageBounds();
+
+                double bottom = 0.03;
+                double top = 0.97;
+                double col1 = 0.0 + (1 - 0.975);
+                double col2 = 0.5 - (1 - 0.975);
+                double col3 = 0.5 + (1 - 0.975);
+                double col4 = 0.975;
+
+                //Load Cube Texture shit
+
+                cmib.stripLeftNW = new Kirali.MathR.Vector2(col1, top);
+                cmib.stripLeftNE = new Kirali.MathR.Vector2(col2, top);
+                cmib.stripLeftSE = new Kirali.MathR.Vector2(col2, bottom);
+                cmib.stripLeftSW = new Kirali.MathR.Vector2(col1, bottom);
+                cmib.stripRightNE = new Kirali.MathR.Vector2(col4, top);
+                cmib.stripRightNW = new Kirali.MathR.Vector2(col4, bottom);
+                cmib.stripRightSE = new Kirali.MathR.Vector2(col3, top);
+                cmib.stripRightSW = new Kirali.MathR.Vector2(col3, bottom);
+
+                return cmib;
+            }
+        }
     }
 
     public struct CubeMapImageBounds
@@ -175,7 +283,13 @@ namespace REPT.Copied_Storage
         public Vector2 stripLeftNW, stripLeftNE, stripLeftSW, stripLeftSE;
         public Vector2 stripRightNW, stripRightNE, stripRightSW, stripRightSE;
     }
+    public enum TextureDataProvider
+    {
+        NONE_UNKNOWN = -1,
+        INTERNAL_CUBEMAP = 0,
+        RENDERWORLD = 1
 
+    }
     public class TextureTile
     {
         public Vector2 Top_Left      = new Vector2( 0, 1 );

@@ -17,6 +17,8 @@ namespace Kirali.Environment.Render.Primatives
 
         private double baseRadius = 2;
 
+        public Vector3 RenderCenter = Vector3.Zero;
+
         public QuadSmoothCube()
         {
             //DEF POINTS
@@ -123,14 +125,14 @@ namespace Kirali.Environment.Render.Primatives
             {
                 Quad3D mlt1 = GetMeshLayerQuad(meshLayers.Length - 1, v);
                 Quad3D mltrot = GetMeshLayerQuad(meshLayers.Length - 1, v).SafeRotateAbout(Rotation);
-                if (Vector3.Dot(cameraPosition - mltrot.Middle, mltrot.Normal) > renderBackwardsLimiter)
+                if (Vector3.Dot(cameraPosition - (mltrot.Middle + RenderCenter), mltrot.Normal) > renderBackwardsLimiter)
                 {
                     meshLayers[meshLayers.Length - 1].show_hide[v] = false;
                     count--;
                 }
                 else
                 {
-                    if (Vector3.Distance(mltrot.Middle, cameraPosition) < SubdivideMinDist(mlt1))
+                    if (Vector3.Distance(mltrot.Middle + RenderCenter, cameraPosition) < SubdivideMinDist(mlt1))
                     {
                         //Do subdivide
                         count += 3;
@@ -158,14 +160,14 @@ namespace Kirali.Environment.Render.Primatives
                     {
                         Quad3D mlt1 = GetMeshLayerQuad(temp, v);
                         Quad3D mltrot = GetMeshLayerQuad(temp, v).SafeRotateAbout(Rotation);
-                        if (Vector3.Dot(cameraPosition - mltrot.Middle, mltrot.Normal) > renderBackwardsLimiter)
+                        if (Vector3.Dot(cameraPosition - (mltrot.Middle + RenderCenter), mltrot.Normal) > renderBackwardsLimiter)
                         {
                             temp.show_hide[v] = false;
                             count--;
                         }
                         else
                         {
-                            if (Vector3.Distance(mltrot.Middle, cameraPosition) < SubdivideMinDist(mlt1))
+                            if (Vector3.Distance(mltrot.Middle + RenderCenter, cameraPosition) < SubdivideMinDist(mlt1))
                             {
                                 //Do subdivide
                                 count += 3;
@@ -198,6 +200,7 @@ namespace Kirali.Environment.Render.Primatives
                 if(meshLayers[meshLayers.Length - 1].show_hide[l])
                 {
                     op[absolute] = GetMeshLayerQuad(meshLayers.Length - 1, l).SafeRotateAbout(Rotation);
+                    op[absolute].Translate(RenderCenter);
                     absolute++;
                 }
             }
@@ -208,6 +211,7 @@ namespace Kirali.Environment.Render.Primatives
                 if (temp.show_hide[x])
                 {
                     op[absolute] = GetMeshLayerQuad(temp, x).SafeRotateAbout(Rotation);
+                    op[absolute].Translate(RenderCenter);
                     absolute++;
                 }
             }

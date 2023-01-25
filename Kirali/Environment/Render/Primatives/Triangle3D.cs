@@ -12,7 +12,9 @@ namespace Kirali.Environment.Render.Primatives
     public class Triangle3D
     {
         private Vector3[] points = new Vector3[3];
+        private Vector3[] pointnormals = new Vector3[3];
         public Vector3[] Points { get { return points; } }
+        public Vector3[] Point_Normals { get { return pointnormals; } set { pointnormals = value; } }
 
         private Vector3 normal;
         public Vector3 Normal
@@ -51,6 +53,9 @@ namespace Kirali.Environment.Render.Primatives
                     (points[0].Z + points[1].Z + points[2].Z) / 3);
             }
         }
+        private int[] tex_link = new int[3];
+        public Vector2[] UV_Link = new Vector2[3];
+        public int[] TextureLink { get { return tex_link; } set { tex_link = value; } }
 
         //CONSTRUCTION
         public Triangle3D()

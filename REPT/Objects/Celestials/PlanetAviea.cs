@@ -22,13 +22,13 @@ namespace REPT.Objects.Celestials
             //Load Cube Texture shit
             REPT.Copied_Storage.CubeMapImageBounds cmib = new REPT.Copied_Storage.CubeMapImageBounds();
 
-            cmib.stripLeftNW = new Kirali.MathR.Vector2(   59 / 4096.0, 4076 / 4096.0);
-            cmib.stripLeftNE = new Kirali.MathR.Vector2( 1415 / 4096.0, 4076 / 4096.0);
-            cmib.stripLeftSE = new Kirali.MathR.Vector2( 1415 / 4096.0,   18 / 4096.0);
-            cmib.stripLeftSW = new Kirali.MathR.Vector2(   59 / 4096.0,   18 / 4096.0);
-            cmib.stripRightNW = new Kirali.MathR.Vector2(2679 / 4096.0, 4076 / 4096.0);
-            cmib.stripRightNE = new Kirali.MathR.Vector2(2679 / 4096.0,   18 / 4096.0);
-            cmib.stripRightSE = new Kirali.MathR.Vector2(4039 / 4096.0,   18 / 4096.0);
+            cmib.stripLeftNW = new Kirali.MathR.Vector2(   58 / 4096.0, 4076 / 4096.0);
+            cmib.stripLeftNE = new Kirali.MathR.Vector2( 1410 / 4096.0, 4076 / 4096.0);
+            cmib.stripLeftSE = new Kirali.MathR.Vector2( 1410 / 4096.0,   18 / 4096.0);
+            cmib.stripLeftSW = new Kirali.MathR.Vector2(   58 / 4096.0,   18 / 4096.0);
+            cmib.stripRightNW = new Kirali.MathR.Vector2(2682 / 4096.0, 4076 / 4096.0);
+            cmib.stripRightNE = new Kirali.MathR.Vector2(2682 / 4096.0,   22 / 4096.0);
+            cmib.stripRightSE = new Kirali.MathR.Vector2(4039 / 4096.0,   22 / 4096.0);
             cmib.stripRightSW = new Kirali.MathR.Vector2(4039 / 4096.0, 4076 / 4096.0);
 
             string celFilePath = "REPT.Resources.Celestial.Specific.PlanetMaps.";

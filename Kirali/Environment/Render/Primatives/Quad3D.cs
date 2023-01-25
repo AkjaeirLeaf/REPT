@@ -59,7 +59,6 @@ namespace Kirali.Environment.Render.Primatives
 
             return this;
         }
-
         public Quad3D SafeRotateAbout(Vector3 rotation)
         {
             Quad3D duplicate = (Quad3D)MemberwiseClone();
@@ -74,6 +73,25 @@ namespace Kirali.Environment.Render.Primatives
             duplicate.points[3] = Vector3.RotateU(Vector3.RotateU(Vector3.RotateU(points[3], Theta, rotation.X), Phi, rotation.Y), R, rotation.Z);
 
             return duplicate;
+        }
+
+        public Quad3D Translate(Vector3 translation)
+        {
+            Points[0].Add(translation);
+            Points[1].Add(translation);
+            Points[2].Add(translation);
+            Points[3].Add(translation);
+            return this;
+        }
+        public Quad3D SafeTranslate(Vector3 translation)
+        {
+            Quad3D copy = (Quad3D)MemberwiseClone();
+
+            copy.Points[0].Add(translation);
+            copy.Points[1].Add(translation);
+            copy.Points[2].Add(translation);
+            copy.Points[3].Add(translation);
+            return copy;
         }
 
 

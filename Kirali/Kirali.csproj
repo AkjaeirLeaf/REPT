@@ -76,9 +76,11 @@
     <Compile Include="Framework\StringHandler.cs" />
     <Compile Include="Light\Camera.cs" />
     <Compile Include="Light\KColor4.cs" />
+    <Compile Include="MathR\Quaternion.cs" />
     <Compile Include="MathR\Vector2.cs" />
     <Compile Include="REGS\BaseStarfield.cs" />
     <Compile Include="REGS\GalaxyToolbox.cs" />
+    <Compile Include="REGS\StarfieldReferenceSegment.cs" />
     <Compile Include="REGS\SystemPointStorage.cs" />
     <Compile Include="REGS\StarSystemData.cs" />
     <Compile Include="REGS\Time.cs" />

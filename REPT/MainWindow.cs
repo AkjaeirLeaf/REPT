@@ -37,8 +37,8 @@ namespace REPT
         {
             Triangle3D t = new Triangle3D();
             t.Transform(new Vector3(0, 0, 1));
-            Vector3 p = new Vector3(0, 0, 10);
-            Vector3 inc = new Vector3(0, 0, -1);
+            Vector3 p    = new Vector3(0, 0, 10);
+            Vector3 inc  = new Vector3(0, 0, -1);
 
             bool hits = t.RayDoesIntersect(p, inc);
 
