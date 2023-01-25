@@ -140,9 +140,184 @@ namespace Kirali.MathR
             Form = vf;
         }
 
+        public Vector3(double[] xyz)
+        {
+            if(xyz.Length == 3)
+            {
+                X = xyz[0];
+                Y = xyz[1];
+                Z = xyz[2];
+            }
+            else { X = 0; Y = 0; Z = 0; }
+        }
+
+        public double[] ToArray()
+        {
+            double[] arr = new double[] { X, Y, Z };
+            
+            return arr;
+        }
+
         public static Vector3 Xaxis { get { return new Vector3(1.0, 0.0, 0.0, VectorForm.DIRECTION); } }
         public static Vector3 Yaxis { get { return new Vector3(0.0, 1.0, 0.0, VectorForm.DIRECTION); } }
         public static Vector3 Zaxis { get { return new Vector3(0.0, 0.0, 1.0, VectorForm.DIRECTION); } }
+
+        /// <summary>
+        /// <tooltip>Returns a new Vector3 perpendicular to (this) given vector using the dot product plane method.</tooltip>
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 A_Perpendicular()
+        {
+            Vector3 p;
+            //  x,  y,  z
+            // vx, vy, vz
+
+            // x*vx + y*vy + z*zy = 0
+
+            int arb_a, arb_b;
+            double combine;
+
+            //
+            if(Z != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (X * arb_a + Y * arb_b) / Z;
+                    p = new Vector3(arb_a, arb_b, combine);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (Y != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (X * arb_a + Z * arb_b) / Y;
+                    p = new Vector3(arb_a, combine, arb_b);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (X != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (Y * arb_a + Z * arb_b) / Z;
+                    p = new Vector3(combine, arb_a, arb_b);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            
+
+            return INFINITY;
+        }
+
+        public Vector3 A_Perpendicular(double x_pref = -500, double y_pref = -500, double z_pref = -500)
+        {
+            Vector3 p;
+            //  x,  y,  z
+            // vx, vy, vz
+
+            // x*vx + y*vy + z*zy = 0
+
+            int arb_a, arb_b;
+            
+            double combine;
+
+            bool use_X, use_Y, use_Z;
+            if (x_pref != -500) { use_X = true; } else { use_X = false; }
+            if (y_pref != -500) { use_Y = true; } else { use_Y = false; }
+            if (z_pref != -500) { use_Z = true; } else { use_Z = false; }
+
+
+            //
+            if (use_X && use_Y)
+            {
+                try
+                {
+                    combine = -1 * (X * x_pref + Y * y_pref) / Z;
+                    p = new Vector3(x_pref, y_pref, combine);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (use_Y && use_Z)
+            {
+                try
+                {
+                    combine = -1 * (Y * y_pref + Z * z_pref) / X;
+                    p = new Vector3(y_pref, z_pref, combine);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (use_Z && use_X)
+            {
+                try
+                {
+                    combine = -1 * (Z * z_pref + X * x_pref) / Y;
+                    p = new Vector3(z_pref, x_pref, combine);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+
+            if (Z != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (X * arb_a + Y * arb_b) / Z;
+                    p = new Vector3(arb_a, arb_b, combine);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (Y != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (X * arb_a + Z * arb_b) / Y;
+                    p = new Vector3(arb_a, combine, arb_b);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+            if (X != 0)
+            {
+                try
+                {
+                    arb_a = 1;
+                    arb_b = 1;
+                    combine = -1 * (Y * arb_a + Z * arb_b) / Z;
+                    p = new Vector3(combine, arb_a, arb_b);
+                    if (!p.IsAnyNAN())
+                        return p;
+                }
+                catch { }
+            }
+
+
+            return INFINITY;
+        }
 
         #endregion VecConstruction
 
@@ -297,6 +472,17 @@ namespace Kirali.MathR
             Y *= -1;
             Z *= -1;
             return this;
+        }
+
+        public static Vector3 Mix(Vector3 v1, Vector3 v2, double factor)
+        {
+            Vector3 vec = new Vector3();
+
+            vec.X = factor * (v2.X - v1.X) + v1.X;
+            vec.Y = factor * (v2.Y - v1.Y) + v1.Y;
+            vec.Z = factor * (v2.Z - v1.Z) + v1.Z;
+
+            return vec;
         }
 
         /// <summary>
@@ -541,5 +727,20 @@ namespace Kirali.MathR
 
 
         #endregion VecSpecial
+
+        #region VekCheks
+
+        public bool IsAnyNAN()
+        {
+            if (Double.IsNaN(X))
+                return true;
+            if (Double.IsNaN(Y))
+                return true;
+            if (Double.IsNaN(Z))
+                return true;
+            return false;
+        }
+
+        #endregion VekCheks
     }
 }

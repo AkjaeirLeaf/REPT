@@ -191,7 +191,7 @@ namespace Kirali.MathR
         /// <param name="p1"></param>
         /// <param name="p2"></param>
         /// <returns></returns>
-        public static double Distance(Vector3 p1, Vector3 p2)
+        public static double Distance(Vector2 p1, Vector2 p2)
         {
             return (p2 - p1).Length();
         }
@@ -384,7 +384,7 @@ namespace Kirali.MathR
 
         public static Vector2 Rotate(Vector2 vector, double angle)
         {
-            Matrix rot = Matrix.RotationU(Vector3.Zaxis, angle);
+            Matrix rot = Matrix.Rotation2D(angle);
             return (vector.ToMatrix().Flip() * rot).ToVector2();
         }
 

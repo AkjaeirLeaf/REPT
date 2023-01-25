@@ -56,6 +56,23 @@ namespace Kirali.MathR
         /// </summary>
         /// <param name="angle"></param>
         /// <returns></returns>
+        public static Matrix Rotation2D(double angle)
+        {
+            double cos = Math.Cos(angle);
+            double sin = Math.Sin(angle);
+            Matrix rot2d = new Matrix(2, 2);
+            rot2d.Set(new double[4]
+                { cos, -1 * sin,
+                sin, cos });
+            return rot2d;
+        }
+
+
+        /// <summary>
+        /// <tooltip>Constructs a Rotation Matrix for a rotation some angle about the X-axis.</tooltip>
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns></returns>
         public static Matrix RotationX(double angle)
         {
             double cos = Math.Cos(angle);
@@ -347,7 +364,7 @@ namespace Kirali.MathR
 
         internal Vector2 ToVector2()
         {
-            return new Vector2(content[0, 0], content[0, 1]);
+            return new Vector2(content[0, 0], content[1, 0]);
         }
         #endregion SetAndGet
 
