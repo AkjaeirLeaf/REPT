@@ -201,7 +201,7 @@ namespace Kirali.Framework
                 }
                 for (int c = 0; c < input2.Length; c++)
                 {
-                    output[c + input1.Length] = input1[c];
+                    output[c + input1.Length] = input2[c];
                 }
             }
             else
